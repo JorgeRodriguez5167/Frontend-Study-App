@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Alert } from "react-native"
+import { View, Text, TouchableOpacity, Modal, StyleSheet, SafeAreaView, Alert } from "react-native"
 import Icon from "react-native-vector-icons/Feather"
 import { Audio } from "expo-av"
 
@@ -8,6 +8,8 @@ export default function RecordScreen() {
   const [recording, setRecording] = useState(null)
   const [audioUri, setAudioUri] = useState(null)
   const [sound, setSound] = useState(null)
+  const [showCategoryModal, setShowCategoryModal] = useState(false)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
 
   const requestMicPermission = async () => {
     const { status } = await Audio.requestPermissionsAsync()
@@ -49,6 +51,7 @@ export default function RecordScreen() {
       setRecording(null)
       setIsRecording(false)
       console.log("Recording saved at:", uri)
+      setShowConfirmModal(true)
     } catch (error) {
       console.error("Failed to stop recording:", error)
     }
@@ -64,6 +67,17 @@ export default function RecordScreen() {
     } catch (error) {
       console.error("Failed to play recording:", error)
     }
+  }
+
+  const handleCategorySelect = async (category) => {
+    console.log("Selected category:", category)
+    setShowCategoryModal(false)
+    await startRecording()
+  }
+
+  const handleConfirmAnswer = (answer) => {
+    console.log("User chose:", answer)
+    setShowConfirmModal(false)
   }
 
   return (
@@ -82,7 +96,7 @@ export default function RecordScreen() {
                 <Text style={styles.buttonText}>Stop Recording</Text>
               </TouchableOpacity>
             ) : (
-              <TouchableOpacity style={styles.recordButton} onPress={startRecording}>
+              <TouchableOpacity style={styles.recordButton} onPress={() => setShowCategoryModal(true)}>
                 <Icon name="mic" size={24} color="white" />
                 <Text style={styles.buttonText}>Start Recording</Text>
               </TouchableOpacity>
@@ -97,10 +111,46 @@ export default function RecordScreen() {
           </View>
 
           <Text style={styles.statusText}>
-            {isRecording ? "Recording in progress..." : audioUri ? "Recording saved. Ready to replay." : "Ready to record"}
+            {isRecording
+              ? "Recording in progress..."
+              : audioUri
+              ? "Recording saved. Ready to replay."
+              : "Ready to record"}
           </Text>
         </View>
       </View>
+
+      {/* Category Modal */}
+      <Modal transparent visible={showCategoryModal} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Please choose the section for your notes:</Text>
+
+            {["Health", "Biology", "Arts", "English", "History"].map((section) => (
+              <TouchableOpacity key={section} style={styles.sectionButton} onPress={() => handleCategorySelect(section)}>
+                <Text style={styles.sectionButtonText}>{section}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Confirmation Modal */}
+      <Modal transparent visible={showConfirmModal} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Is this the audio you want to send?</Text>
+
+            <TouchableOpacity style={styles.sectionButton} onPress={() => handleConfirmAnswer("yes")}>
+              <Text style={styles.sectionButtonText}>Yes</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.sectionButton} onPress={() => handleConfirmAnswer("no")}>
+              <Text style={styles.sectionButtonText}>No</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -183,4 +233,38 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     fontSize: 14,
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 24,
+    width: "80%",
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  sectionButton: {
+    backgroundColor: "#1f2937",
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginVertical: 6,
+    width: "100%",
+    alignItems: "center",
+  },
+  sectionButtonText: {
+    color: "white",
+    fontWeight: "bold",
+  },
 })
+
+ 
