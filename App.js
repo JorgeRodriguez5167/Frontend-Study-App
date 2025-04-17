@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView, Dimensions } from 'react-native';
+import {
+  StyleSheet, Text, View, TextInput, TouchableOpacity, Alert,
+  SafeAreaView, KeyboardAvoidingView, Platform, ScrollView
+} from 'react-native';
+
 import HomeScreen from './HomeScreen';
 import NoteSelection from './NoteSelection';
 import AccountSettingsScreen from './AccountSettingsScreen';
 import UploadTextScreen from './UploadTextScreen';
 import UploadAudioScreen from './UploadAudioScreen';
 import RecordAudioScreen from './RecordAudioScreen';
-
 
 const Stack = createStackNavigator();
 
@@ -24,12 +27,16 @@ const LoginScreen = ({ navigation }) => {
       Alert.alert('Error', 'Please enter both username and password.');
       return;
     }
-    console.log('Logging in with:', { username, password });
-    navigation.replace('Home'); // Navigate to Home Screen
+    navigation.replace('Home');
   };
 
   const handleSignup = () => {
-    if (username.trim() === '' || email.trim() === '' || password.trim() === '' || confirmPassword.trim() === '') {
+    if (
+      username.trim() === '' ||
+      email.trim() === '' ||
+      password.trim() === '' ||
+      confirmPassword.trim() === ''
+    ) {
       Alert.alert('Error', 'Please fill out all fields.');
       return;
     }
@@ -37,20 +44,21 @@ const LoginScreen = ({ navigation }) => {
       Alert.alert('Error', 'Passwords do not match.');
       return;
     }
-    console.log('Signing up with:', { username, email, password });
-    navigation.replace('Home'); // Navigate to Home Screen
+    navigation.replace('Home');
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>NoteApp</Text>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardAvoidingView}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardAvoidingView}
+      >
         <ScrollView contentContainerStyle={styles.scrollView}>
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Welcome to NoteApp</Text>
 
-            {/* Tabs */}
             <View style={styles.tabs}>
               <TouchableOpacity
                 style={[styles.tab, activeTab === 'login' && styles.activeTab]}
@@ -66,7 +74,6 @@ const LoginScreen = ({ navigation }) => {
               </TouchableOpacity>
             </View>
 
-            {/* Login Form */}
             {activeTab === 'login' && (
               <View style={styles.form}>
                 <TextInput
@@ -88,7 +95,6 @@ const LoginScreen = ({ navigation }) => {
               </View>
             )}
 
-            {/* Signup Form */}
             {activeTab === 'signup' && (
               <View style={styles.form}>
                 <TextInput
@@ -133,15 +139,14 @@ const LoginScreen = ({ navigation }) => {
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Navigator initialRouteName="Login">
+        <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Notes" component={NoteSelection} />
         <Stack.Screen name="AccountSettings" component={AccountSettingsScreen} />
         <Stack.Screen name="UploadText" component={UploadTextScreen} />
         <Stack.Screen name="UploadAudio" component={UploadAudioScreen} />
         <Stack.Screen name="RecordAudio" component={RecordAudioScreen} />
-
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -150,83 +155,87 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#121212', // dark background
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
     padding: 20,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
+    color: '#ff3b3b', // red accent
     marginBottom: 20,
+    fontStyle: 'italic',
   },
   card: {
     width: '100%',
-    maxWidth: 400, // Set a max-width for larger screens (e.g., desktops)
-    padding: 20,
-    backgroundColor: 'white',
-    borderRadius: 8,
+    maxWidth: 400,
+    padding: 25,
+    backgroundColor: '#1e1e1e', // card darker than background
+    borderRadius: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   cardTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: '600',
     marginBottom: 20,
     textAlign: 'center',
+    color: '#fff',
   },
   tabs: {
     flexDirection: 'row',
-    marginBottom: 16,
+    marginBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: '#333',
   },
   tab: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 10,
     alignItems: 'center',
   },
   activeTab: {
-    borderBottomWidth: 2,
-    borderBottomColor: '#e53e3e',
+    borderBottomWidth: 3,
+    borderBottomColor: '#ff3b3b',
   },
   tabText: {
     fontSize: 16,
-    color: '#6b7280',
+    color: '#aaa',
   },
   activeTabText: {
-    color: '#e53e3e',
+    color: '#ff3b3b',
     fontWeight: 'bold',
   },
   form: {
-    marginTop: 8,
+    marginTop: 10,
+    alignItems: 'center',
   },
   input: {
     width: '100%',
-    maxWidth: 300,  // Max width for inputs to avoid stretching on large screens
     height: 50,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#444',
     borderRadius: 10,
-    paddingLeft: 10,
+    paddingLeft: 15,
     marginBottom: 15,
-    backgroundColor: '#fff',
+    backgroundColor: '#2a2a2a',
+    color: '#fff',
   },
   button: {
-    backgroundColor: '#3eb489',
+    backgroundColor: '#ff3b3b',
     padding: 15,
     borderRadius: 10,
     width: '100%',
-    maxWidth: 300,  // Match the max width of the form elements
     alignItems: 'center',
     marginTop: 10,
   },
   buttonText: {
     color: 'white',
     fontSize: 18,
+    fontWeight: '600',
   },
   scrollView: {
     flexGrow: 1,
@@ -234,4 +243,3 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
-
