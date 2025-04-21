@@ -155,39 +155,38 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f5f5f5', // soft background
     padding: 20,
   },
   title: {
-    fontSize: 32, // Increased for better hierarchy
+    fontSize: 34,
     fontWeight: 'bold',
     marginBottom: 30,
-    color: '#1a202c', // Darker for more emphasis
+    textAlign: 'center',
+    color: '#3e3e3e',
   },
   card: {
     width: '100%',
     maxWidth: 400,
-    padding: 20,
+    padding: 24,
     backgroundColor: 'white',
-    borderRadius: 8,
+    borderRadius: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowRadius: 8,
+    elevation: 3,
   },
   cardTitle: {
-    fontSize: 22, // Slightly larger
-    fontWeight: '600', // Slightly bolder
-    marginBottom: 25, // More space below
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 20,
     textAlign: 'center',
-    color: '#2d3748', // Stronger contrast
+    color: '#3e3e3e',
   },
   tabs: {
     flexDirection: 'row',
-    marginBottom: 20, // More space after tabs
+    marginBottom: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
   },
@@ -197,8 +196,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   activeTab: {
-    borderBottomWidth: 2,
-    borderBottomColor: '#e53e3e',
+    borderBottomWidth: 3,
+    borderBottomColor: '#e53e3e', // coral red
   },
   tabText: {
     fontSize: 16,
@@ -209,37 +208,43 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   form: {
-    marginTop: 16,
-    gap: 10, // Optional, adds space between children (requires React Native 0.71+)
+    marginTop: 12,
   },
   input: {
     width: '100%',
-    maxWidth: 300,
-    height: 50,
+    maxWidth: 320,
+    height: 52,
     borderWidth: 1,
     borderColor: '#ccc',
-    borderRadius: 10,
-    paddingLeft: 10,
-    marginBottom: 18, // Slightly increased for more breathing room
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    marginBottom: 18,
     backgroundColor: '#fff',
+    fontSize: 16,
   },
   button: {
-    backgroundColor: '#3eb489',
-    padding: 15,
-    borderRadius: 10,
+    backgroundColor: '#3eb489', // mint green
+    paddingVertical: 14,
+    borderRadius: 12,
     width: '100%',
-    maxWidth: 300,
+    maxWidth: 320,
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 16,
+    shadowColor: '#3eb489',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
   },
   buttonText: {
     color: 'white',
     fontSize: 18,
+    fontWeight: '600',
   },
   scrollView: {
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingBottom: 40,
   },
 });
-
