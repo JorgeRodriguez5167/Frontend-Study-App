@@ -6,13 +6,13 @@ import {
   StyleSheet,
   Alert,
   Modal,
+  Pressable,
   SafeAreaView,
   ScrollView,
   ActivityIndicator
 } from 'react-native';
 import { Audio } from 'expo-av';
 import Icon from 'react-native-vector-icons/Feather';
-import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions'; // Added import
 
 export default function RecordAudioScreen() {
   const [isRecording, setIsRecording] = useState(false);
@@ -28,17 +28,12 @@ export default function RecordAudioScreen() {
   const categoryOptions = ['Health', 'Biology', 'Arts', 'English', 'History'];
 
   const requestMicPermission = async () => {
-    // Request permission based on the platform (Android/iOS)
-    const result = await request(PERMISSIONS.ANDROID.RECORD_AUDIO); // For Android
-    // For iOS, use PERMISSIONS.IOS.MICROPHONE as a fallback
-    // const result = await request(PERMISSIONS.IOS.MICROPHONE); 
-    
-    if (result === RESULTS.GRANTED) {
-      return true;
-    } else {
+    const { status } = await Audio.requestPermissionsAsync();
+    if (status !== 'granted') {
       Alert.alert('Permission required', 'Microphone access is needed to record audio.');
       return false;
     }
+    return true;
   };
 
   const startRecording = async () => {
@@ -98,7 +93,8 @@ export default function RecordAudioScreen() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('https://backend-study-app-production.up.railway.app/transcribe?stream=false', {
+      //const res = await fetch('http://localhost:8000/transcribe?stream=false', {
+        const res = await fetch('https://backend-study-app-production.up.railway.app/transcribe?stream=false', {
         method: 'POST',
         body: formData,
       });
@@ -160,10 +156,11 @@ export default function RecordAudioScreen() {
                   <Text style={styles.buttonText}>Transcribe</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.replayButton} onPress={() => {}}>
-                  <Icon name="book-open" size={24} color="white" />
-                  <Text style={styles.buttonText}>Summarize</Text>
-                </TouchableOpacity>
+              <TouchableOpacity style={styles.replayButton} onPress={() => {}}>
+      <Icon name="book-open" size={24} color="white" />
+      <Text style={styles.buttonText}>Summarize</Text>
+    </TouchableOpacity>
+
               </>
             )}
 
@@ -292,3 +289,4 @@ const styles = StyleSheet.create({
   sectionButtonText: { color: 'white', fontWeight: 'bold' },
   transcriptionBox: { maxHeight: 200, marginTop: 10, backgroundColor: '#fff', padding: 10, borderRadius: 6 },
 });
+
