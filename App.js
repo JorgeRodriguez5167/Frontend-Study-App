@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import {
   StyleSheet, Text, View, TextInput, TouchableOpacity, Alert,
-  SafeAreaView, KeyboardAvoidingView, Platform, ScrollView
+  SafeAreaView, KeyboardAvoidingView, Platform, ScrollView, Image
 } from 'react-native';
 
 import HomeScreen from './HomeScreen';
@@ -49,6 +49,9 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Logo added here */}
+      <Image source={logo} style={styles.logo} />
+      
       <Text style={styles.title}>NoteApp</Text>
 
       <KeyboardAvoidingView
@@ -155,38 +158,43 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5', // soft background
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
     padding: 20,
   },
+  logo: {
+    width: 80,  // Adjust size as needed
+    height: 80, // Adjust size as needed
+    marginBottom: 20,  // Spacing between logo and title
+  },
   title: {
-    fontSize: 34,
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 30,
-    textAlign: 'center',
-    color: '#3e3e3e',
+    marginBottom: 20,
+    color: '#e53e3e',
   },
   card: {
     width: '100%',
     maxWidth: 400,
-    padding: 24,
+    padding: 20,
     backgroundColor: 'white',
-    borderRadius: 16,
+    borderRadius: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowRadius: 4,
+    elevation: 2,
   },
   cardTitle: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
-    color: '#3e3e3e',
   },
   tabs: {
     flexDirection: 'row',
-    marginBottom: 20,
+    marginBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
   },
@@ -196,8 +204,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   activeTab: {
-    borderBottomWidth: 3,
-    borderBottomColor: '#e53e3e', // coral red
+    borderBottomWidth: 2,
+    borderBottomColor: '#e53e3e',
   },
   tabText: {
     fontSize: 16,
@@ -208,43 +216,37 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   form: {
-    marginTop: 12,
+    marginTop: 8,
   },
   input: {
     width: '100%',
-    maxWidth: 320,
-    height: 52,
+    maxWidth: 300,
+    height: 50,
     borderWidth: 1,
     borderColor: '#ccc',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    marginBottom: 18,
+    borderRadius: 10,
+    paddingLeft: 10,
+    marginBottom: 15,
     backgroundColor: '#fff',
-    fontSize: 16,
   },
   button: {
-    backgroundColor: '#3eb489', // mint green
-    paddingVertical: 14,
-    borderRadius: 12,
+    backgroundColor: '#e53e3e',
+    padding: 15,
+    borderRadius: 10,
     width: '100%',
-    maxWidth: 320,
+    maxWidth: 300,
     alignItems: 'center',
-    marginTop: 16,
-    shadowColor: '#3eb489',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 2,
+    marginTop: 10,
   },
   buttonText: {
     color: 'white',
     fontSize: 18,
-    fontWeight: '600',
   },
   scrollView: {
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 40,
   },
 });
+
+
