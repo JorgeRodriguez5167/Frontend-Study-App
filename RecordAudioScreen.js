@@ -203,7 +203,7 @@ export default function RecordAudioScreen() {
       <Modal transparent visible={showConfirmModal} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Is this the audio you want to send?</Text>
+            <Text style={styles.modalTitle}>Is this the Audio you want to send?</Text>
 
             <TouchableOpacity style={styles.sectionButton} onPress={() => handleConfirmAnswer("yes")}>
               <Text style={styles.sectionButtonText}>Yes</Text>
