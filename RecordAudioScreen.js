@@ -155,6 +155,12 @@ export default function RecordAudioScreen() {
                   <Icon name="upload" size={24} color="white" />
                   <Text style={styles.buttonText}>Transcribe</Text>
                 </TouchableOpacity>
+
+              <TouchableOpacity style={styles.replayButton} onPress={() => {}}>
+      <Icon name="book-open" size={24} color="white" />
+      <Text style={styles.buttonText}>Summarize</Text>
+    </TouchableOpacity>
+
               </>
             )}
 
