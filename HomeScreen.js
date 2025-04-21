@@ -103,7 +103,7 @@ export default function HomeScreen() {
               data={mockNotes[activeCategory]}
               renderItem={renderNoteItem}
               keyExtractor={(item) => item.id}
-              scrollEnabled={True}
+              scrollEnabled={False}
               style={styles.notesList}
             />
           </View>
