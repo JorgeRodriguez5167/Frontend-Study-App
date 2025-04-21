@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 
 // Importing the logo image
-import NoteAppLogo from '../assets/NoteAppLogo.png'; // Adjust the path if necessary
+import NoteAppLogo from './assets/NoteAppLogo.png'; // Adjust the path if necessary
 
 import HomeScreen from './HomeScreen';
 import NoteSelection from './NoteSelection';
