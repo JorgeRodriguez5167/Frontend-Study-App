@@ -1,5 +1,3 @@
-// ✅ RECORDINGAUDIOSCREEN.JS – FIXED FOR ANDROID + SUMMARIZE
-// Replace entire content of RecordAudioScreen.js with this version
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Platform, ActivityIndicator, Alert } from 'react-native';
 import * as FileSystem from 'expo-file-system';
