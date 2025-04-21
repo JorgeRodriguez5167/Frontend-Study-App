@@ -161,9 +161,10 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32, // Increased for better hierarchy
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 30,
+    color: '#1a202c', // Darker for more emphasis
   },
   card: {
     width: '100%',
@@ -178,14 +179,15 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cardTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
+    fontSize: 22, // Slightly larger
+    fontWeight: '600', // Slightly bolder
+    marginBottom: 25, // More space below
     textAlign: 'center',
+    color: '#2d3748', // Stronger contrast
   },
   tabs: {
     flexDirection: 'row',
-    marginBottom: 16,
+    marginBottom: 20, // More space after tabs
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
   },
@@ -207,7 +209,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   form: {
-    marginTop: 8,
+    marginTop: 16,
+    gap: 10, // Optional, adds space between children (requires React Native 0.71+)
   },
   input: {
     width: '100%',
@@ -217,7 +220,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 10,
     paddingLeft: 10,
-    marginBottom: 15,
+    marginBottom: 18, // Slightly increased for more breathing room
     backgroundColor: '#fff',
   },
   button: {
@@ -239,3 +242,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+
