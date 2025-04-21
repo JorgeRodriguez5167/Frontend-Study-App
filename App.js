@@ -6,6 +6,9 @@ import {
   SafeAreaView, KeyboardAvoidingView, Platform, ScrollView, Image
 } from 'react-native';
 
+// Importing the logo image
+import NoteAppLogo from '../assets/NoteAppLogo.png'; // Adjust the path if necessary
+
 import HomeScreen from './HomeScreen';
 import NoteSelection from './NoteSelection';
 import AccountSettingsScreen from './AccountSettingsScreen';
@@ -49,9 +52,8 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Logo added here */}
-      <Image source={logo} style={styles.logo} />
-      
+      <Image source={NoteAppLogo} style={styles.logo} />  {/* Logo added here */}
+
       <Text style={styles.title}>NoteApp</Text>
 
       <KeyboardAvoidingView
@@ -164,15 +166,14 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   logo: {
-    width: 80,  // Adjust size as needed
-    height: 80, // Adjust size as needed
-    marginBottom: 20,  // Spacing between logo and title
+    width: 100, // Adjust size as needed
+    height: 100, // Adjust size as needed
+    marginBottom: 20,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 20,
-    color: '#e53e3e',
   },
   card: {
     width: '100%',
@@ -230,7 +231,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   button: {
-    backgroundColor: '#e53e3e',
+    backgroundColor: '#e53e3e',  // Red button color to match your scheme
     padding: 15,
     borderRadius: 10,
     width: '100%',
