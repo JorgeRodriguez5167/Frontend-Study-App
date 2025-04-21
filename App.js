@@ -6,15 +6,15 @@ import {
   SafeAreaView, KeyboardAvoidingView, Platform, ScrollView, Image
 } from 'react-native';
 
-// Importing the logo image
-import NoteAppLogo from './assets/NoteAppLogo.png'; // Adjust the path if necessary
-
 import HomeScreen from './HomeScreen';
 import NoteSelection from './NoteSelection';
 import AccountSettingsScreen from './AccountSettingsScreen';
 import UploadTextScreen from './UploadTextScreen';
 import UploadAudioScreen from './UploadAudioScreen';
 import RecordAudioScreen from './RecordAudioScreen';
+
+// Import the logo image
+import NoteAppLogo from './assets/NoteAppLogo.png';
 
 const Stack = createStackNavigator();
 
@@ -52,9 +52,10 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Image source={NoteAppLogo} style={styles.logo} />  {/* Logo added here */}
-
       <Text style={styles.title}>NoteApp</Text>
+
+      {/* Logo */}
+      <Image source={NoteAppLogo} style={styles.logo} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -165,15 +166,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     padding: 20,
   },
-  logo: {
-    width: 100, // Adjust size as needed
-    height: 100, // Adjust size as needed
-    marginBottom: 20,
-  },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 20,
+  },
+  logo: {
+    position: 'absolute',
+    top: 40, // Adjust the value for the exact placement
+    right: 20, // Adjust the value for the exact placement
+    width: 100, // Adjust the size (double the original size)
+    height: 100, // Adjust the size (double the original size)
+    resizeMode: 'contain',
   },
   card: {
     width: '100%',
@@ -231,7 +235,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   button: {
-    backgroundColor: '#e53e3e',  // Red button color to match your scheme
+    backgroundColor: '#e53e3e',
     padding: 15,
     borderRadius: 10,
     width: '100%',
@@ -249,5 +253,3 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
-
-
