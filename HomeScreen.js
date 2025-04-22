@@ -3,35 +3,20 @@ import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, FlatList } from
 import { useNavigation, useRoute } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Feather";
 
-// Mock notes data
+// Updated categories to match those in RecordAudioScreen
 const mockNotes = {
-  work: [
-    { id: "1", title: "Meeting notes", content: "Discuss project timeline with team members..." },
-    { id: "2", title: "Task list", content: "Complete report by Friday, review documentation..." },
-  ],
-  personal: [
-    { id: "3", title: "Shopping list", content: "Milk, eggs, bread, vegetables, fruits..." },
-    { id: "4", title: "Birthday reminder", content: "Mom's birthday next week, buy a gift..." },
-  ],
-  study: [
-    { id: "5", title: "Math formulas", content: "Quadratic equation: ax² + bx + c = 0..." },
-    { id: "6", title: "History dates", content: "World War II: 1939-1945, French Revolution: 1789..." },
-  ],
-  ideas: [
-    { id: "7", title: "App idea", content: "Create a meal planning app with recipe suggestions..." },
-    { id: "8", title: "Blog post", content: "Write about productivity tips for remote work..." },
-  ],
-  misc: [
-    { id: "9", title: "Sample Note", content: "This is a preview of the note content..." },
-    { id: "10", title: "Another Note", content: "Here's another note preview..." },
-  ],
+  Health: [],
+  Biology: [],
+  Arts: [],
+  English: [],
+  History: [],
 };
 
 export default function HomeScreen() {
   const navigation = useNavigation();
   const route = useRoute();
 
-  const [activeCategory, setActiveCategory] = useState("misc");
+  const [activeCategory, setActiveCategory] = useState("Health");
   const [notes, setNotes] = useState(mockNotes);
 
   // Retrieve passed transcription & category
@@ -249,3 +234,4 @@ const styles = StyleSheet.create({
     color: "#6b7280",
   },
 });
+
