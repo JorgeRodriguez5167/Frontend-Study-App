@@ -6,10 +6,9 @@ import {
   StyleSheet,
   Alert,
   Modal,
-  Pressable,
   SafeAreaView,
   ScrollView,
-  ActivityIndicator
+  ActivityIndicator,
 } from 'react-native';
 import { Audio } from 'expo-av';
 import { useNavigation } from '@react-navigation/native';
@@ -165,36 +164,20 @@ export default function RecordAudioScreen() {
                 </TouchableOpacity>
               </>
             )}
+
+            {/* Display Transcription When Ready */}
+            {uploading && <ActivityIndicator size="large" color="#e53e3e" />}
+            {transcription && (
+              <ScrollView style={styles.transcriptionBox}>
+                <Text style={{ color: '#1f2937' }}>{transcription}</Text>
+              </ScrollView>
+            )}
           </View>
         </View>
       </View>
-
-      {/* Category Selection Modal */}
-      <Modal transparent visible={showCategoryModal} animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Choose a category:</Text>
-            {categoryOptions.map((section) => (
-              <TouchableOpacity
-                key={section}
-                style={styles.sectionButton}
-                onPress={() => {
-                  setSelectedCategory(section);
-                  setShowCategoryModal(false);
-                  startRecording();
-                }}
-              >
-                <Text style={styles.sectionButtonText}>{section}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
-
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f3f4f6' },
   content: { flex: 1, padding: 16, justifyContent: 'center' },
