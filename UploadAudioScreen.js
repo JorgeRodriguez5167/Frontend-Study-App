@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Modal, Platform
+  View, Text, TouchableOpacity, StyleSheet,
+  ActivityIndicator, Alert, Modal, Platform
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
@@ -16,6 +17,8 @@ export default function UploadAudioScreen() {
   const [summarizing, setSummarizing] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [transcribed, setTranscribed] = useState(false);
+  const [summarized, setSummarized] = useState(false);
 
   const handleCategorySelect = (category) => {
     setSelectedCategory(category);
@@ -30,9 +33,10 @@ export default function UploadAudioScreen() {
         setAudioUri(result.assets[0].uri);
         setTranscription('');
         setSummary('');
+        setTranscribed(false);
+        setSummarized(false);
       }
     } catch (err) {
-      console.error('File selection failed', err);
       Alert.alert('Error', 'Could not select audio file.');
     }
   };
@@ -40,8 +44,6 @@ export default function UploadAudioScreen() {
   const transcribeAudio = async () => {
     if (!audioUri) return;
     setUploading(true);
-    setTranscription('');
-
     try {
       let response;
       if (Platform.OS === 'web') {
@@ -63,12 +65,11 @@ export default function UploadAudioScreen() {
           json: async () => JSON.parse(result.body),
         };
       }
-
       const data = await response.json();
       setTranscription(data.transcription || '');
-      Alert.alert("✅ Transcribed", "Audio was transcribed successfully.");
+      setTranscribed(true);
+      Alert.alert('Success', 'Transcription completed!');
     } catch (err) {
-      console.error('Transcription failed', err);
       Alert.alert('Error', 'Failed to transcribe audio.');
     } finally {
       setUploading(false);
@@ -78,20 +79,18 @@ export default function UploadAudioScreen() {
   const summarizeText = async () => {
     if (!transcription) return;
     setSummarizing(true);
-
     try {
       const response = await fetch(`${BACKEND_URL}/summarize`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: transcription })
       });
-
       const data = await response.json();
-      setSummary(data.summary || '');
-      Alert.alert("✅ Summarized", "Summary created successfully.");
+      setSummary(data.summary);
+      setSummarized(true);
+      Alert.alert('Success', 'Summary generated!');
     } catch (err) {
-      console.error('Summarization failed', err);
-      Alert.alert('Error', 'Failed to summarize the note.');
+      Alert.alert('Error', 'Failed to summarize note.');
     } finally {
       setSummarizing(false);
     }
@@ -99,32 +98,29 @@ export default function UploadAudioScreen() {
 
   const saveNote = async (type, content) => {
     if (!content) return;
-
-    Alert.prompt(`Save ${type}`, "Enter a title:", async (title) => {
+    Alert.prompt(`Save ${type}`, "Enter a title for this note:", async (title) => {
       if (!title) return;
-
-      const fullTitle = `${title} ${type === 'Summary' ? 'Summary' : 'Notes'}`;
-
+      const noteTitle = `${title} ${type === 'Summary' ? 'Summary' : 'Notes'}`;
       try {
         const response = await fetch(`${BACKEND_URL}/notes`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            title: fullTitle,
-            content,
+            user_id: 2,
+            title: noteTitle,
             category: selectedCategory,
-            user_id: 2
+            transcription: type === 'Transcription' ? content : null,
+            summarized_notes: type === 'Summary' ? content : null
           }),
         });
-
         const data = await response.json();
         if (response.ok) {
-          Alert.alert("✅ Success", `${type} saved as "${fullTitle}"`);
+          Alert.alert("Saved", `${type} saved as "${noteTitle}"`);
         } else {
-          Alert.alert("Failed", `Could not save ${type}.`);
+          Alert.alert("Failed", "Save failed.");
         }
       } catch (err) {
-        Alert.alert("Error", "Failed to save note.");
+        Alert.alert("Error", "Save failed.");
       }
     });
   };
@@ -157,27 +153,25 @@ export default function UploadAudioScreen() {
                 <Icon name="book-open" size={24} color="white" />
                 <Text style={styles.buttonText}>Summarize</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.recordButton}
-                onPress={() => saveNote("Notes", transcription)}
-                disabled={!transcription}
-              >
-                <Icon name="save" size={20} color="white" />
-                <Text style={styles.buttonText}>Save Transcript</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.recordButton}
-                onPress={() => saveNote("Summary", summary)}
-                disabled={!summary}
-              >
-                <Icon name="save" size={20} color="white" />
-                <Text style={styles.buttonText}>Save Summary</Text>
-              </TouchableOpacity>
             </>
           )}
 
           {uploading && <ActivityIndicator size="large" color="#2196F3" style={{ marginVertical: 10 }} />}
           {summarizing && <ActivityIndicator size="large" color="#e53e3e" style={{ marginVertical: 10 }} />}
+
+          {transcribed && (
+            <TouchableOpacity style={styles.recordButton} onPress={() => saveNote('Transcription', transcription)}>
+              <Icon name="save" size={20} color="white" />
+              <Text style={styles.buttonText}>Save Transcript</Text>
+            </TouchableOpacity>
+          )}
+
+          {summarized && (
+            <TouchableOpacity style={styles.recordButton} onPress={() => saveNote('Summary', summary)}>
+              <Icon name="save" size={20} color="white" />
+              <Text style={styles.buttonText}>Save Summary</Text>
+            </TouchableOpacity>
+          )}
 
           <Text style={styles.statusText}>
             {audioUri ? "Audio selected. Ready to transcribe." : "No audio file selected."}
