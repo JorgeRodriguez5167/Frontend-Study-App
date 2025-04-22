@@ -52,9 +52,7 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>NoteApp</Text>
-
-      {/* Logo */}
+      {/* Replaced title with logo */}
       <Image source={AppLogo} style={styles.logo} />
 
       <KeyboardAvoidingView
@@ -63,7 +61,7 @@ const LoginScreen = ({ navigation }) => {
       >
         <ScrollView contentContainerStyle={styles.scrollView}>
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Welcome to NoteApp</Text>
+            <Text style={styles.cardTitle}>Welcome to Note Study App</Text>
 
             <View style={styles.tabs}>
               <TouchableOpacity
@@ -166,18 +164,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     padding: 20,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
   logo: {
-    position: 'absolute',
-    top: 40, // Adjust the value for the exact placement
-    right: 20, // Adjust the value for the exact placement
-    width: 100, // Adjust the size (double the original size)
-    height: 100, // Adjust the size (double the original size)
+    width: 140,
+    height: 140,
     resizeMode: 'contain',
+    marginBottom: 20,
   },
   card: {
     width: '100%',
@@ -253,3 +244,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+
