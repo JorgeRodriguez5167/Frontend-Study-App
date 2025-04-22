@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, FlatList } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, FlatList } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Feather";
 
@@ -51,62 +51,62 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* ScrollView to wrap everything */}
-      <ScrollView contentContainerStyle={styles.scrollViewContainer}>
-        <Text style={styles.title}>My Notes</Text>
+      {/* Content */}
+      <View style={styles.content}>
+        {/* Actions Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Actions</Text>
 
-        <View style={styles.content}>
-          {/* Actions Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Actions</Text>
+          <TouchableOpacity style={styles.blackButton} onPress={() => navigation.navigate("RecordAudio")}>
+            <Icon name="mic" size={20} color="white" />
+            <Text style={styles.blackButtonText}>Record Lecture</Text>
+          </TouchableOpacity>
 
-            <TouchableOpacity style={styles.blackButton} onPress={() => navigation.navigate("RecordAudio")}>
-              <Icon name="mic" size={20} color="white" />
-              <Text style={styles.blackButtonText}>Record Lecture</Text>
-            </TouchableOpacity>
+          <TouchableOpacity style={styles.whiteButton} onPress={() => navigation.navigate("UploadAudio")}>
+            <Icon name="upload" size={20} color="black" />
+            <Text style={styles.whiteButtonText}>Upload Audio</Text>
+          </TouchableOpacity>
 
-            <TouchableOpacity style={styles.whiteButton} onPress={() => navigation.navigate("UploadAudio")}>
-              <Icon name="upload" size={20} color="black" />
-              <Text style={styles.whiteButtonText}>Upload Audio</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.whiteButton} onPress={() => navigation.navigate("UploadText")}>
-              <Icon name="file-text" size={20} color="black" />
-              <Text style={styles.whiteButtonText}>Upload Text</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Notes Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Notes</Text>
-
-            {/* Category Tabs */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryTabsContainer}>
-              <View style={styles.categoryTabs}>
-                {["Health", "Biology", "Arts", "English", "History"].map((category) => (
-                  <TouchableOpacity
-                    key={category}
-                    style={[styles.categoryTab, activeCategory === category && styles.activeCategoryTab]}
-                    onPress={() => setActiveCategory(category)}
-                  >
-                    <Text style={[styles.categoryTabText, activeCategory === category && styles.activeCategoryTabText]}>
-                      {category.charAt(0).toUpperCase() + category.slice(1)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
-
-            {/* Notes List */}
-            <FlatList
-              data={mockNotes[activeCategory]}
-              renderItem={renderNoteItem}
-              keyExtractor={(item) => item.id}
-              style={styles.notesList}
-            />
-          </View>
+          <TouchableOpacity style={styles.whiteButton} onPress={() => navigation.navigate("UploadText")}>
+            <Icon name="file-text" size={20} color="black" />
+            <Text style={styles.whiteButtonText}>Upload Text</Text>
+          </TouchableOpacity>
         </View>
-      </ScrollView>
+
+        {/* Notes Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Notes</Text>
+
+          {/* Category Tabs */}
+          <FlatList
+            horizontal
+            data={["Health", "Biology", "Arts", "English", "History"]}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                key={item}
+                style={[styles.categoryTab, activeCategory === item && styles.activeCategoryTab]}
+                onPress={() => setActiveCategory(item)}
+              >
+                <Text style={[styles.categoryTabText, activeCategory === item && styles.activeCategoryTabText]}>
+                  {item.charAt(0).toUpperCase() + item.slice(1)}
+                </Text>
+              </TouchableOpacity>
+            )}
+            keyExtractor={(item) => item}
+            showsHorizontalScrollIndicator={false}
+            style={styles.categoryTabs}
+          />
+
+          {/* Notes List */}
+          <FlatList
+            data={mockNotes[activeCategory]}
+            renderItem={renderNoteItem}
+            keyExtractor={(item) => item.id}
+            style={styles.notesList}
+            nestedScrollEnabled={true}
+          />
+        </View>
+      </View>
     </SafeAreaView>
   );
 }
@@ -138,15 +138,6 @@ const styles = StyleSheet.create({
   accountButtonText: {
     color: "white",
     marginLeft: 8,
-  },
-  scrollViewContainer: {
-    padding: 16,
-    paddingTop: 0,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 16,
   },
   content: {
     paddingBottom: 16,
@@ -193,9 +184,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontWeight: "500",
   },
-  categoryTabsContainer: {
-    marginBottom: 16,
-  },
   categoryTabs: {
     flexDirection: "row",
     backgroundColor: "#f3f4f6",
@@ -241,4 +229,5 @@ const styles = StyleSheet.create({
     color: "#6b7280",
   },
 });
+
 
