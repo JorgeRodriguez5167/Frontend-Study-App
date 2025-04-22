@@ -189,10 +189,16 @@ const LoginScreen = ({ navigation }) => {
       return response.json();
     })
     .then(data => {
+      // Create userData object similar to login response
+      const userData = {
+        userId: data.id,
+        username: data.username
+      };
+
       Alert.alert(
         'Success',
         'Account created successfully!',
-        [{ text: 'OK', onPress: () => navigation.replace('Home') }]
+        [{ text: 'OK', onPress: () => navigation.replace('Home', { userData }) }]
       );
     })
     .catch(error => {
