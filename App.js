@@ -14,7 +14,7 @@ import UploadAudioScreen from './UploadAudioScreen';
 import RecordAudioScreen from './RecordAudioScreen';
 
 // Import the logo image
-import NoteAppLogo from './assets/NoteAppLogo.png';
+import AppLogo from './assets/AppLogo.png';
 
 const Stack = createStackNavigator();
 
@@ -55,7 +55,7 @@ const LoginScreen = ({ navigation }) => {
       <Text style={styles.title}>NoteApp</Text>
 
       {/* Logo */}
-      <Image source={NoteAppLogo} style={styles.logo} />
+      <Image source={AppLogo} style={styles.logo} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
