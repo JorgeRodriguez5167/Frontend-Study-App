@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Alert, Modal, Platform
+  View, Text, TouchableOpacity, StyleSheet, Alert, Modal, ActivityIndicator, Platform
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
@@ -11,6 +10,8 @@ const BACKEND_URL = 'https://backend-study-app-production.up.railway.app';
 
 export default function UploadAudioScreen() {
   const [audioUri, setAudioUri] = useState(null);
+  const [transcription, setTranscription] = useState('');
+  const [summary, setSummary] = useState('');
   const [loading, setLoading] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -26,6 +27,8 @@ export default function UploadAudioScreen() {
       const result = await DocumentPicker.getDocumentAsync({ type: 'audio/*' });
       if (!result.canceled) {
         setAudioUri(result.assets[0].uri);
+        setTranscription('');
+        setSummary('');
       }
     } catch (err) {
       console.error('File selection failed', err);
@@ -33,17 +36,10 @@ export default function UploadAudioScreen() {
     }
   };
 
-  const handleSaveNote = async () => {
-    if (!audioUri || !selectedCategory) return;
-
-    const baseTitle = prompt("Enter a title for your note:");
-    if (!baseTitle) return;
-    const finalTitle = `${baseTitle.trim()} Notes`;
-
+  const transcribeAudio = async () => {
+    if (!audioUri) return;
     setLoading(true);
-
     try {
-      // 1. Transcribe audio
       let response;
       if (Platform.OS === 'web') {
         const blob = await (await fetch(audioUri)).blob();
@@ -65,43 +61,69 @@ export default function UploadAudioScreen() {
         };
       }
 
-      const transcribeData = await response.json();
-      const transcription = transcribeData.transcription || '';
+      const data = await response.json();
+      setTranscription(data.transcription || '');
+      Alert.alert("Transcribed", "Audio transcription completed.");
+    } catch (err) {
+      console.error('Transcription failed', err);
+      Alert.alert('Error', 'Failed to transcribe audio.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      // 2. Summarize
-      const summaryRes = await fetch(`${BACKEND_URL}/summarize`, {
+  const summarizeText = async () => {
+    if (!transcription) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`${BACKEND_URL}/summarize`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: transcription })
       });
 
-      const summaryData = await summaryRes.json();
-      const summary = summaryData.summary || '';
+      const data = await response.json();
+      setSummary(data.summary || '');
+      Alert.alert("Summarized", "Summary created successfully.");
+    } catch (err) {
+      console.error('Summarization failed', err);
+      Alert.alert('Error', 'Failed to summarize the note.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      // 3. Save to DB
-      const saveRes = await fetch(`${BACKEND_URL}/notes`, {
+  const makeNote = async (type, content) => {
+    if (!content || !selectedCategory) return;
+    const baseTitle = prompt(`Enter a title for your ${type}:`);
+    if (!baseTitle) return;
+
+    const title = `${baseTitle.trim()} ${type === 'Summary' ? 'Summary' : 'Notes'}`;
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/notes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_id: 2,
-          title: finalTitle,
+          title,
           category: selectedCategory,
-          transcription,
-          summarized_notes: summary
+          transcription: type === 'Transcription' ? content : null,
+          summarized_notes: type === 'Summary' ? content : null
         })
       });
 
-      const saveData = await saveRes.json();
-      if (saveRes.ok) {
-        Alert.alert("Success", `Saved as '${finalTitle}'`);
-        console.log("Saved:", saveData);
-        setAudioUri(null); // reset for next file
+      const data = await response.json();
+      if (response.ok) {
+        Alert.alert("Success", `${type} saved as "${title}"`);
+        console.log(`Saved ${type}`, data);
       } else {
-        Alert.alert("Failed", "Could not save note.");
-        console.error("Save failed:", saveData);
+        Alert.alert("Failed", `Could not save ${type}.`);
+        console.error("Save error:", data);
       }
     } catch (err) {
-      console.error("Error in processing:", err);
+      console.error("Save failed:", err);
       Alert.alert("Error", "Something went wrong.");
     } finally {
       setLoading(false);
@@ -113,7 +135,7 @@ export default function UploadAudioScreen() {
       <View style={styles.content}>
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Upload Audio Note</Text>
+            <Text style={styles.cardTitle}>Upload Audio File</Text>
             <Text style={styles.cardDescription}>Category: {selectedCategory || 'Not selected'}</Text>
           </View>
 
@@ -123,19 +145,33 @@ export default function UploadAudioScreen() {
           </TouchableOpacity>
 
           {audioUri && (
-            <TouchableOpacity
-              style={[styles.recordButton, { backgroundColor: loading ? '#999' : 'black' }]}
-              disabled={loading}
-              onPress={handleSaveNote}
-            >
-              <Icon name="save" size={24} color="white" />
-              <Text style={styles.buttonText}>Save Note</Text>
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity style={styles.recordButton} onPress={transcribeAudio}>
+                <Icon name="file-text" size={24} color="white" />
+                <Text style={styles.buttonText}>Transcribe</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.recordButton} onPress={summarizeText}>
+                <Icon name="book-open" size={24} color="white" />
+                <Text style={styles.buttonText}>Summarize</Text>
+              </TouchableOpacity>
+              {transcription !== '' && (
+                <TouchableOpacity style={styles.recordButton} onPress={() => makeNote('Transcription', transcription)}>
+                  <Icon name="save" size={20} color="white" />
+                  <Text style={styles.buttonText}>Save Transcript</Text>
+                </TouchableOpacity>
+              )}
+              {summary !== '' && (
+                <TouchableOpacity style={styles.recordButton} onPress={() => makeNote('Summary', summary)}>
+                  <Icon name="save" size={20} color="white" />
+                  <Text style={styles.buttonText}>Save Summary</Text>
+                </TouchableOpacity>
+              )}
+            </>
           )}
 
           {loading && <ActivityIndicator size="large" color="#2196F3" style={{ marginVertical: 10 }} />}
           <Text style={styles.statusText}>
-            {audioUri ? "Audio selected. Ready to save." : "No audio file selected."}
+            {audioUri ? "Audio selected. Ready to process." : "No audio file selected."}
           </Text>
         </View>
       </View>
@@ -143,7 +179,7 @@ export default function UploadAudioScreen() {
       <Modal transparent visible={showCategoryModal} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Choose a category:</Text>
+            <Text style={styles.modalTitle}>Please choose the section for your notes:</Text>
             {['Health', 'Biology', 'Arts', 'English', 'History'].map((section) => (
               <TouchableOpacity key={section} style={styles.sectionButton} onPress={() => handleCategorySelect(section)}>
                 <Text style={styles.sectionButtonText}>{section}</Text>
