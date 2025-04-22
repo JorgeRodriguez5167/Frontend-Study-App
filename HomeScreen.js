@@ -19,12 +19,20 @@ export default function HomeScreen({route}) {
   
   // Extract user data from navigation route params
   const userData = route?.params?.userData || { userId: 1 }; // Default to userId: 1 if not provided
+  const refreshTrigger = route?.params?.refresh;
 
   // Fetch user data to get the username
   useEffect(() => {
     fetchUserData();
     fetchUserNotes();
   }, []);
+
+  // Additional effect to handle refresh trigger
+  useEffect(() => {
+    if (refreshTrigger) {
+      fetchUserNotes();
+    }
+  }, [refreshTrigger]);
 
   const fetchUserData = async () => {
     if (!userData.userId && !userData.user_id) {

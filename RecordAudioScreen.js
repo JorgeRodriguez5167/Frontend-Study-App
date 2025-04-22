@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator
 import * as FileSystem from 'expo-file-system';
 import { Audio } from 'expo-av';
 import Icon from 'react-native-vector-icons/Feather';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 const BACKEND_URL = 'https://backend-study-app-production.up.railway.app';
 
@@ -13,6 +14,9 @@ export default function RecordAudioScreen() {
   const [sound, setSound] = useState();
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
+  const navigation = useNavigation();
+  const route = useRoute();
+  const userData = route?.params?.userData || { userId: 2 };
 
   const startRecording = async () => {
     try {
@@ -121,12 +125,15 @@ export default function RecordAudioScreen() {
               const summarizeData = await summarizeResponse.json();
               const summary = summarizeData.summary || '';
               
+              // Get user ID from userData (handling both formats)
+              const userId = userData.userId || userData.user_id || 2;
+              
               // Step 3: Save the note with all data
               const saveResponse = await fetch(`${BACKEND_URL}/notes`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  user_id: 2, // Replace with actual user ID
+                  user_id: userId,
                   title: title.trim(),
                   category: selectedCategory,
                   transcription: transcription,
@@ -140,6 +147,11 @@ export default function RecordAudioScreen() {
                 Alert.alert("Success", "Note saved successfully!");
                 // Clear states for a new recording
                 setAudioUri(null);
+                // Clear entire navigation stack and set Home as the only screen
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'Home', params: { userData, refresh: Date.now() } }],
+                });
               } else {
                 throw new Error('Failed to save the note.');
               }
