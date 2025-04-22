@@ -1,7 +1,7 @@
-import { useState } from "react"
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, FlatList } from "react-native"
-import { useNavigation } from "@react-navigation/native"
-import Icon from "react-native-vector-icons/Feather"
+import { useState } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, FlatList } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import Icon from "react-native-vector-icons/Feather";
 
 // Mock notes data
 const mockNotes = {
@@ -25,18 +25,18 @@ const mockNotes = {
     { id: "9", title: "Sample Note", content: "This is a preview of the note content..." },
     { id: "10", title: "Another Note", content: "Here's another note preview..." },
   ],
-}
+};
 
 export default function HomeScreen() {
-  const [activeCategory, setActiveCategory] = useState("misc")
-  const navigation = useNavigation()
+  const [activeCategory, setActiveCategory] = useState("misc");
+  const navigation = useNavigation();
 
   const renderNoteItem = ({ item }) => (
     <View style={styles.noteCard}>
       <Text style={styles.noteTitle}>{item.title}</Text>
       <Text style={styles.noteContent}>{item.content}</Text>
     </View>
-  )
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -51,7 +51,8 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollView}>
+      {/* ScrollView to wrap everything */}
+      <ScrollView contentContainerStyle={styles.scrollViewContainer}>
         <Text style={styles.title}>My Notes</Text>
 
         <View style={styles.content}>
@@ -107,7 +108,7 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -138,18 +139,17 @@ const styles = StyleSheet.create({
     color: "white",
     marginLeft: 8,
   },
-  scrollView: {
-    flexGrow: 1,
-    paddingBottom: 16,
+  scrollViewContainer: {
+    padding: 16,
+    paddingTop: 0,
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    margin: 16,
+    marginBottom: 16,
   },
   content: {
-    padding: 16,
-    paddingTop: 0,
+    paddingBottom: 16,
   },
   section: {
     borderWidth: 1,
@@ -240,4 +240,5 @@ const styles = StyleSheet.create({
   noteContent: {
     color: "#6b7280",
   },
-})
+});
+
