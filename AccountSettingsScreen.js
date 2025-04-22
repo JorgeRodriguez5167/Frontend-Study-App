@@ -12,7 +12,6 @@ export default function AccountSettingsScreen() {
   const [lastName, setLastName] = useState("Doe")
   const [displayName, setDisplayName] = useState("JohnD")
   const [email, setEmail] = useState("john.doe@example.com")
-  const [bio, setBio] = useState("I'm a student who loves taking notes and staying organized.")
 
   const handleLogout = () => {
     Alert.alert(
@@ -43,16 +42,6 @@ export default function AccountSettingsScreen() {
       case "profile":
         return (
           <View style={styles.tabContent}>
-            <View style={styles.profileImageContainer}>
-              <View style={styles.profileImage}>
-                <Icon name="user" size={40} color="#9ca3af" />
-              </View>
-              <TouchableOpacity style={styles.uploadPhotoButton}>
-                <Text style={styles.uploadPhotoText}>Upload Photo</Text>
-              </TouchableOpacity>
-              <Text style={styles.photoHint}>JPG, GIF or PNG. Max size 2MB.</Text>
-            </View>
-
             <View style={styles.formRow}>
               <View style={styles.formGroup}>
                 <Text style={styles.label}>First Name</Text>
@@ -65,9 +54,13 @@ export default function AccountSettingsScreen() {
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Display Name</Text>
-              <TextInput style={styles.input} value={displayName} onChangeText={setDisplayName} />
-              <Text style={styles.hint}>This is how your name will appear in the app.</Text>
+              <Text style={styles.label}>Username</Text>
+              <TextInput 
+                style={[styles.input, styles.readOnlyInput]} 
+                value={displayName} 
+                editable={false} 
+              />
+              <Text style={styles.hint}>Your unique identifier in the app.</Text>
             </View>
 
             <View style={styles.formGroup}>
@@ -78,18 +71,6 @@ export default function AccountSettingsScreen() {
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
-              />
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Bio</Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                value={bio}
-                onChangeText={setBio}
-                multiline
-                numberOfLines={4}
-                textAlignVertical="top"
               />
             </View>
 
@@ -124,15 +105,6 @@ export default function AccountSettingsScreen() {
             <TouchableOpacity style={styles.saveButton}>
               <Icon name="save" size={20} color="white" />
               <Text style={styles.saveButtonText}>Save Security Settings</Text>
-            </TouchableOpacity>
-            
-            {/* Divider */}
-            <View style={styles.divider} />
-            
-            {/* Logout Button */}
-            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-              <Icon name="log-out" size={20} color="white" />
-              <Text style={styles.logoutButtonText}>Logout</Text>
             </TouchableOpacity>
           </View>
         )
@@ -235,35 +207,6 @@ const styles = StyleSheet.create({
   tabContent: {
     padding: 16,
   },
-  profileImageContainer: {
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: "#e5e7eb",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
-  },
-  uploadPhotoButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 4,
-    marginBottom: 4,
-  },
-  uploadPhotoText: {
-    fontSize: 14,
-    color: "#374151",
-  },
-  photoHint: {
-    fontSize: 12,
-    color: "#6b7280",
-  },
   formRow: {
     flexDirection: "row",
     marginBottom: 16,
@@ -285,10 +228,6 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     padding: 10,
     fontSize: 16,
-  },
-  textArea: {
-    height: 100,
-    textAlignVertical: "top",
   },
   hint: {
     fontSize: 12,
@@ -336,26 +275,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#6b7280",
   },
-  logoutButton: {
-    backgroundColor: "#dc2626",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 6,
-    marginTop: 24,
-  },
   logoutButtonText: {
     color: "white",
     fontWeight: "bold",
     marginLeft: 8,
     fontSize: 16,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#e5e7eb",
-    marginTop: 24,
   },
   globalLogoutButton: {
     backgroundColor: "#dc2626",
@@ -367,5 +291,9 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginTop: 24,
     marginBottom: 40,
+  },
+  readOnlyInput: {
+    backgroundColor: '#f3f4f6',
+    color: '#6b7280',
   },
 })

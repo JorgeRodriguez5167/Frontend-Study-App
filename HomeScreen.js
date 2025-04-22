@@ -43,7 +43,7 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>NoteApp</Text>
+          <Text style={styles.headerTitle}>Study Assistant</Text>
           
         </View>
         <TouchableOpacity style={styles.accountButton} onPress={() => navigation.navigate("AccountSettings")}>
@@ -53,12 +53,12 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.contentContainer}>
-        <Text style={styles.title}>My Notes</Text>
+        <Text style={styles.title}>Welcome back, (user)</Text>
 
         <View style={styles.content}>
           {/* Actions Section */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Actions</Text>
+            <Text style={styles.sectionTitle}>Create New Notes</Text>
 
             <TouchableOpacity style={styles.blackButton} onPress={() => navigation.navigate("RecordAudio")}>
               <Icon name="mic" size={20} color="white" />

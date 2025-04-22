@@ -205,18 +205,23 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>NoteApp</Text>
-
-      {/* Logo */}
-      <Image source={NoteAppLogo} style={styles.logo} />
+      {/* Logo - centered at the top, hidden when signup tab is active */}
+      {activeTab !== 'signup' && (
+        <Image 
+          source={NoteAppLogo} 
+          style={styles.centeredLogo}
+        />
+      )}
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoidingView}
+        style={styles.keyboardAvoidingContainer}
+        contentContainerStyle={{flex: 1}}
+        keyboardVerticalOffset={activeTab === 'signup' ? -100 : 0}
       >
         <View style={styles.scrollViewContainer}>
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Welcome to NoteApp</Text>
+            <Text style={styles.cardTitle}>Welcome to Study Assistant</Text>
 
             <View style={styles.tabs}>
               <TouchableOpacity
@@ -260,7 +265,13 @@ const LoginScreen = ({ navigation }) => {
             )}
 
             {activeTab === 'signup' && (
-              <ScrollView contentContainerStyle={styles.signupScrollContainer}>
+              <ScrollView 
+                contentContainerStyle={styles.signupScrollContainer}
+                showsVerticalScrollIndicator={true}
+                keyboardShouldPersistTaps="handled"
+                style={{width: '100%', maxHeight: activeTab === 'signup' ? '100%' : 'auto'}}
+                nestedScrollEnabled={true}
+              >
                 <View style={styles.form}>
                   <TextInput
                     style={styles.input}
@@ -382,23 +393,25 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f5f5f5',
-    padding: 20,
+    paddingTop: 50,
+    paddingHorizontal: 20,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+  centeredLogo: {
+    width: 150,
+    height: 150,
+    resizeMode: 'contain',
     marginBottom: 20,
   },
-  logo: {
-    position: 'absolute',
-    top: 40, // Adjust the value for the exact placement
-    right: 20, // Adjust the value for the exact placement
-    width: 100, // Adjust the size (double the original size)
-    height: 100, // Adjust the size (double the original size)
-    resizeMode: 'contain',
+  keyboardAvoidingContainer: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+  },
+  scrollViewContainer: {
+    width: '100%',
+    alignItems: 'center',
   },
   card: {
     width: '100%',
@@ -411,6 +424,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+    alignItems: 'center',
   },
   cardTitle: {
     fontSize: 24,
@@ -423,6 +437,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
+    width: '100%',
   },
   tab: {
     flex: 1,
@@ -443,6 +458,8 @@ const styles = StyleSheet.create({
   },
   form: {
     marginTop: 8,
+    width: '100%',
+    alignItems: 'center',
   },
   input: {
     width: '100%',
@@ -468,13 +485,11 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
   },
-  scrollViewContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   signupScrollContainer: {
     flexGrow: 1,
+    width: '100%',
+    alignItems: 'center',
+    paddingBottom: 20,
   },
   dateContainer: {
     width: '100%',
