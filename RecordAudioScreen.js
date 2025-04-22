@@ -122,24 +122,38 @@ export default function RecordAudioScreen() {
     }
   };
 
-  const saveNote = async (type, content) => {
+ const saveNote = async (type, content) => {
   if (!content) return;
 
-  Alert.prompt(`Save ${type} Note`, "Enter a title:", async (title) => {
-    if (!title) return;
+  const title = type === 'Summary' ? 'Summary Note' : 'Transcript Note';  // Replace prompt for now
 
-    try {
-      const response = await fetch(`${BACKEND_URL}/notes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: 2,
-          title,
-          category: selectedCategory,
-          transcription: type === 'Transcription' ? content : null,
-          summarized_notes: type === 'Summary' ? content : null
-        })
-      });
+  try {
+    const response = await fetch(`${BACKEND_URL}/notes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: 2,
+        title,
+        category: selectedCategory,
+        transcription: type === 'Transcription' ? content : null,
+        summarized_notes: type === 'Summary' ? content : null
+      })
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      Alert.alert("✅ Success", `${type} note saved.`);
+      console.log(`📝 Saved ${type} note`, data);
+    } else {
+      Alert.alert("❌ Failed", `Could not save ${type} note.`);
+      console.error(`Save ${type} failed`, data);
+    }
+  } catch (err) {
+    console.error('Note save failed:', err);
+    Alert.alert("Error", "Something went wrong.");
+  }
+};
+
 
       const data = await response.json();
       if (response.ok) {
@@ -200,16 +214,6 @@ export default function RecordAudioScreen() {
             )}
           </View>
 
-          {uploading && <ActivityIndicator size="large" color="#2196F3" style={{ marginVertical: 10 }} />}
-          {transcription !== '' && (
-            <ScrollView
-            style={{ padding: 16 }}
-            contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}
-  >         
-            <Text style={styles.modalTitle}>Transcription:</Text>
-            <Text>{transcription}</Text>
-          </ScrollView>
-          
           )}
 
           {transcription !== '' && (
@@ -228,16 +232,7 @@ export default function RecordAudioScreen() {
             </>
           )}
 
-          {summary !== '' && (
-            <ScrollView 
-            style={{ padding: 16 }} 
-            contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}  // Or center, stretch, etc.
-          >
-            <Text style={styles.modalTitle}>Summary:</Text>
-            <Text>{summary}</Text>
-          </ScrollView>
-  
-          )}
+       
 
           {summary !== '' && (
             <>
