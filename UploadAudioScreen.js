@@ -51,10 +51,10 @@ export default function UploadAudioScreen() {
 
     try {
       const response = await fetch(audioUri);
-      const audioBlob = await response.blob();
-      const file = new File([audioBlob], 'uploaded_audio.wav', { type: 'audio/wav' });
+      const blob = await response.blob();
+
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', blob, 'uploaded_audio.wav');
 
       const res = await fetch('https://backend-study-app-production.up.railway.app/transcribe?stream=false', {
         method: 'POST',
