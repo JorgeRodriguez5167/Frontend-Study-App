@@ -168,24 +168,23 @@ export default function RecordAudioScreen() {
 
           {uploading && <ActivityIndicator size="large" color="#2196F3" style={{ marginVertical: 10 }} />}
           {transcription !== '' && (
-            <ScrollView 
-            style={styles.modalContent} 
-            contentContainerStyle={{ alignItems: 'flex-start' }}  // Or center, stretch, etc.
-          >
+            <ScrollView
+            style={{ padding: 16 }}
+            contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}
+  >         
             <Text style={styles.modalTitle}>Transcription:</Text>
             <Text>{transcription}</Text>
-          </ScrollView> 
-
+          </ScrollView>
           
-
           )}
+
           {summary !== '' && (
             <ScrollView 
-            style={styles.modalContent} 
-            contentContainerStyle={{ alignItems: 'flex-start' }}  // Or center, stretch, etc.
+            style={{ padding: 16 }} 
+            contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}  // Or center, stretch, etc.
           >
-            <Text style={styles.modalTitle}>Transcription:</Text>
-            <Text>{transcription}</Text>
+            <Text style={styles.modalTitle}>Summary:</Text>
+            <Text>{summary}</Text>
           </ScrollView>
   
           )}
