@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, FlatList } from "react-native"
 import { useNavigation } from "@react-navigation/native"
@@ -53,7 +52,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scrollView}>
+      <View style={styles.contentContainer}>
         <Text style={styles.title}>My Notes</Text>
 
         <View style={styles.content}>
@@ -99,16 +98,19 @@ export default function HomeScreen() {
             </ScrollView>
 
             {/* Notes List */}
-            <FlatList
-              data={mockNotes[activeCategory]}
-              renderItem={renderNoteItem}
-              keyExtractor={(item) => item.id}
-              
-              style={styles.notesList}
-            />
+            <View style={styles.notesListContainer}>
+              <FlatList
+                data={mockNotes[activeCategory] || []}
+                renderItem={renderNoteItem}
+                keyExtractor={(item) => item.id}
+                style={styles.notesList}
+                scrollEnabled={true}
+                nestedScrollEnabled={true}
+              />
+            </View>
           </View>
         </View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   )
 }
@@ -140,6 +142,9 @@ const styles = StyleSheet.create({
   accountButtonText: {
     color: "white",
     marginLeft: 8,
+  },
+  contentContainer: {
+    flex: 1,
   },
   scrollView: {
     flex: 1,
@@ -224,8 +229,11 @@ const styles = StyleSheet.create({
   activeCategoryTabText: {
     color: "black",
   },
+  notesListContainer: {
+    height: 300, // Fixed height for the container
+  },
   notesList: {
-    marginTop: 8,
+    flex: 1,
   },
   noteCard: {
     borderWidth: 1,

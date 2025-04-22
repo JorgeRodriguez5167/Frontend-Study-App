@@ -214,7 +214,7 @@ const LoginScreen = ({ navigation }) => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardAvoidingView}
       >
-        <ScrollView contentContainerStyle={styles.scrollView}>
+        <View style={styles.scrollViewContainer}>
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Welcome to NoteApp</Text>
 
@@ -260,98 +260,104 @@ const LoginScreen = ({ navigation }) => {
             )}
 
             {activeTab === 'signup' && (
-              <View style={styles.form}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Choose a username"
-                  value={username}
-                  onChangeText={setUsername}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="First Name"
-                  value={firstName}
-                  onChangeText={setFirstName}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Last Name"
-                  value={lastName}
-                  onChangeText={setLastName}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Email"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-                <View style={styles.dateContainer}>
-                  <Text style={styles.dateLabel}>Date of Birth:</Text>
-                  <View style={styles.dateInputsContainer}>
-                    <TextInput
-                      style={[styles.dateInput, {flex: 2}]}
-                      placeholder="MM"
-                      value={month}
-                      onChangeText={setMonth}
-                      keyboardType="numeric"
-                      maxLength={2}
-                    />
-                    <Text style={styles.dateSeparator}>/</Text>
-                    <TextInput
-                      style={[styles.dateInput, {flex: 2}]}
-                      placeholder="DD"
-                      value={day}
-                      onChangeText={setDay}
-                      keyboardType="numeric"
-                      maxLength={2}
-                    />
-                    <Text style={styles.dateSeparator}>/</Text>
-                    <TextInput
-                      style={[styles.dateInput, {flex: 3}]}
-                      placeholder="YYYY"
-                      value={year}
-                      onChangeText={setYear}
-                      keyboardType="numeric"
-                      maxLength={4}
-                    />
+              <ScrollView contentContainerStyle={styles.signupScrollContainer}>
+                <View style={styles.form}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Choose a username"
+                    value={username}
+                    onChangeText={setUsername}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="First Name"
+                    value={firstName}
+                    onChangeText={setFirstName}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Last Name"
+                    value={lastName}
+                    onChangeText={setLastName}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Email"
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                  <View style={styles.dateContainer}>
+                    <Text style={styles.dateLabel}>Date of Birth:</Text>
+                    <View style={styles.dateInputsContainer}>
+                      <TextInput
+                        style={[styles.dateInput, {flex: 2}]}
+                        placeholder="MM"
+                        value={month}
+                        onChangeText={setMonth}
+                        keyboardType="numeric"
+                        maxLength={2}
+                      />
+                      <Text style={styles.dateSeparator}>/</Text>
+                      <TextInput
+                        style={[styles.dateInput, {flex: 2}]}
+                        placeholder="DD"
+                        value={day}
+                        onChangeText={setDay}
+                        keyboardType="numeric"
+                        maxLength={2}
+                      />
+                      <Text style={styles.dateSeparator}>/</Text>
+                      <TextInput
+                        style={[styles.dateInput, {flex: 3}]}
+                        placeholder="YYYY"
+                        value={year}
+                        onChangeText={setYear}
+                        keyboardType="numeric"
+                        maxLength={4}
+                      />
+                    </View>
                   </View>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Age"
+                    value={age}
+                    onChangeText={setAge}
+                    keyboardType="numeric"
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Major"
+                    value={major}
+                    onChangeText={setMajor}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Password"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Confirm Password"
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    secureTextEntry
+                  />
+                  {isLoading ? (
+                    <ActivityIndicator size="large" color="#e53e3e" style={styles.loader} />
+                  ) : (
+                    <TouchableOpacity style={styles.button} onPress={handleSignup}>
+                      <Text style={styles.buttonText}>Sign Up</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Age"
-                  value={age}
-                  onChangeText={setAge}
-                  keyboardType="numeric"
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Major"
-                  value={major}
-                  onChangeText={setMajor}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Password"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Confirm Password"
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  secureTextEntry
-                />
-                <TouchableOpacity style={styles.button} onPress={handleSignup}>
-                  <Text style={styles.buttonText}>Sign Up</Text>
-                </TouchableOpacity>
-              </View>
+              </ScrollView>
             )}
           </View>
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -462,10 +468,13 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
   },
-  scrollView: {
+  scrollViewContainer: {
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  signupScrollContainer: {
+    flexGrow: 1,
   },
   dateContainer: {
     width: '100%',
