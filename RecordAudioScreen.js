@@ -125,33 +125,35 @@ export default function RecordAudioScreen() {
  const saveNote = async (type, content) => {
   if (!content) return;
 
-  const title = type === 'Summary' ? 'Summary Note' : 'Transcript Note';  // Replace prompt for now
+  Alert.prompt(`Save ${type}`, "Enter a title:", async (baseTitle) => {
+    if (!baseTitle) return;
 
-  try {
-    const response = await fetch(`${BACKEND_URL}/notes`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        user_id: 2,
-        title,
-        category: selectedCategory,
-        transcription: type === 'Transcription' ? content : null,
-        summarized_notes: type === 'Summary' ? content : null
-      })
-    });
+    const title = `${baseTitle.trim()} ${type === 'Summary' ? 'Summary' : 'Notes'}`;
 
-    const data = await response.json();
-    if (response.ok) {
-      Alert.alert("Success", `${type} note saved.`);
-      console.log(`Saved ${type} note`, data);
-    } else {
-      Alert.alert("Failed", `Could not save ${type} note.`);
-      console.error(`Save ${type} failed`, data);
+    try {
+      const response = await fetch(`${BACKEND_URL}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: 2,
+          title,
+          category: selectedCategory,
+          transcription: type === 'Transcription' ? content : null,
+          summarized_notes: type === 'Summary' ? content : null
+        })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        Alert.alert("✅ Success", `${type} saved as '${title}'`);
+      } else {
+        Alert.alert("❌ Failed", "Could not save note.");
+      }
+    } catch (err) {
+      console.error('Note save failed:', err);
+      Alert.alert("Error", "Something went wrong.");
     }
-  } catch (err) {
-    console.error('Note save failed:', err);
-    Alert.alert("Error", "Something went wrong.");
-  }
+  });
 };
   
   return (
