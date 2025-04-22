@@ -12,6 +12,7 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { Audio } from 'expo-av';
+import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Feather';
 
 export default function RecordAudioScreen() {
@@ -25,6 +26,7 @@ export default function RecordAudioScreen() {
   const [transcription, setTranscription] = useState(null);
   const [uploading, setUploading] = useState(false);
 
+  const navigation = useNavigation();
   const categoryOptions = ['Health', 'Biology', 'Arts', 'English', 'History'];
 
   const requestMicPermission = async () => {
@@ -93,8 +95,7 @@ export default function RecordAudioScreen() {
       const formData = new FormData();
       formData.append('file', file);
 
-      //const res = await fetch('http://localhost:8000/transcribe?stream=false', {
-        const res = await fetch('https://backend-study-app-production.up.railway.app/transcribe?stream=false', {
+      const res = await fetch('https://backend-study-app-production.up.railway.app/transcribe?stream=false', {
         method: 'POST',
         body: formData,
       });
@@ -103,6 +104,13 @@ export default function RecordAudioScreen() {
 
       const data = await res.json();
       setTranscription(data.transcription);
+
+      // 🚀 Send transcription and selected category to HomeScreen
+      navigation.navigate('HomeScreen', {
+        transcribedText: data.transcription,
+        category: selectedCategory,
+      });
+
     } catch (error) {
       console.error('Upload or transcription error:', error);
       Alert.alert('Error', 'Failed to transcribe the audio.');
@@ -119,7 +127,7 @@ export default function RecordAudioScreen() {
   };
 
   useEffect(() => {
-    return sound ? () => { sound.unloadAsync(); } : undefined;
+    return sound ? () => sound.unloadAsync() : undefined;
   }, [sound]);
 
   return (
@@ -155,40 +163,17 @@ export default function RecordAudioScreen() {
                   <Icon name="upload" size={24} color="white" />
                   <Text style={styles.buttonText}>Transcribe</Text>
                 </TouchableOpacity>
-
-              <TouchableOpacity style={styles.replayButton} onPress={() => {}}>
-      <Icon name="book-open" size={24} color="white" />
-      <Text style={styles.buttonText}>Summarize</Text>
-    </TouchableOpacity>
-
               </>
             )}
-
-            {uploading && (
-              <Text style={styles.statusText}>Uploading...</Text>
-            )}
-
-            {transcription && (
-              <ScrollView style={styles.transcriptionBox}>
-                <Text style={{ color: '#1f2937' }}>{transcription}</Text>
-              </ScrollView>
-            )}
           </View>
-
-          <Text style={styles.statusText}>
-            {isRecording
-              ? "Recording in progress..."
-              : audioUri
-              ? "Recording saved. Ready to replay."
-              : "Ready to record"}
-          </Text>
         </View>
       </View>
 
+      {/* Category Selection Modal */}
       <Modal transparent visible={showCategoryModal} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Please choose the section for your notes:</Text>
+            <Text style={styles.modalTitle}>Choose a category:</Text>
             {categoryOptions.map((section) => (
               <TouchableOpacity
                 key={section}
@@ -205,25 +190,10 @@ export default function RecordAudioScreen() {
           </View>
         </View>
       </Modal>
-
-      <Modal transparent visible={showConfirmModal} animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Is this the Audio you want to send?</Text>
-
-            <TouchableOpacity style={styles.sectionButton} onPress={() => handleConfirmAnswer("yes")}>
-              <Text style={styles.sectionButtonText}>Yes</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.sectionButton} onPress={() => handleConfirmAnswer("no")}>
-              <Text style={styles.sectionButtonText}>No</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f3f4f6' },
@@ -289,4 +259,3 @@ const styles = StyleSheet.create({
   sectionButtonText: { color: 'white', fontWeight: 'bold' },
   transcriptionBox: { maxHeight: 200, marginTop: 10, backgroundColor: '#fff', padding: 10, borderRadius: 6 },
 });
-
