@@ -185,33 +185,19 @@ const saveNoteToServer = async (finalTitle, type, content) => {
           {uploading && <ActivityIndicator size="large" color="#2196F3" style={{ marginVertical: 10 }} />}
 
           {transcription !== '' && (
-            <>
-              <ScrollView style={{ padding: 16 }} contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}>
-                <Text style={styles.modalTitle}>Transcription:</Text>
-                <Text>{transcription}</Text>
-              </ScrollView>
-              <TouchableOpacity style={styles.recordButton} onPress={() => saveNote('Transcription', transcription)}>
-                <Icon name="save" size={20} color="white" />
-                <Text style={styles.buttonText}>Save Transcript</Text>
-              </TouchableOpacity>
-            </>
+            <ScrollView style={{ padding: 16 }} contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}>
+              <Text style={styles.modalTitle}>Transcription:</Text>
+              <Text>{transcription}</Text>
+            </ScrollView>
           )}
-          
+
           {summary !== '' && (
-            <>
-              <ScrollView style={{ padding: 16 }} contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}>
-                <Text style={styles.modalTitle}>Summary:</Text>
-                <Text>{summary}</Text>
-              </ScrollView>
-              <TouchableOpacity style={styles.recordButton} onPress={() => saveNote('Summary', summary)}>
-                <Icon name="save" size={20} color="white" />
-                <Text style={styles.buttonText}>Save Summary</Text>
-              </TouchableOpacity>
-            </>
+            <ScrollView style={{ padding: 16 }} contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}>
+              <Text style={styles.modalTitle}>Summary:</Text>
+              <Text>{summary}</Text>
+            </ScrollView>
           )}
 
-
-            
           <Text style={styles.statusText}>
             {audioUri ? "Audio selected. Ready to transcribe." : "No audio file selected."}
           </Text>
@@ -251,3 +237,4 @@ const styles = StyleSheet.create({
   sectionButton: { backgroundColor: "#1f2937", paddingVertical: 10, paddingHorizontal: 24, borderRadius: 8, marginVertical: 6, width: "100%", alignItems: "center" },
   sectionButtonText: { color: "white", fontWeight: "bold" },
 });
+
