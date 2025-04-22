@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, FlatList } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/Feather";
 
 // Mock notes data
@@ -28,8 +28,28 @@ const mockNotes = {
 };
 
 export default function HomeScreen() {
-  const [activeCategory, setActiveCategory] = useState("misc");
   const navigation = useNavigation();
+  const route = useRoute();
+
+  const [activeCategory, setActiveCategory] = useState("misc");
+  const [notes, setNotes] = useState(mockNotes);
+
+  // Retrieve passed transcription & category
+  useEffect(() => {
+    const transcribedText = route.params?.transcribedText;
+    const category = route.params?.category;
+
+    if (transcribedText && category) {
+      setNotes((prevNotes) => ({
+        ...prevNotes,
+        [category]: [
+          ...prevNotes[category],
+          { id: Date.now().toString(), title: "Transcribed Note", content: transcribedText },
+        ],
+      }));
+      setActiveCategory(category);
+    }
+  }, [route.params]);
 
   const renderNoteItem = ({ item }) => (
     <View style={styles.noteCard}>
@@ -80,7 +100,7 @@ export default function HomeScreen() {
           {/* Category Tabs */}
           <FlatList
             horizontal
-            data={["Health", "Biology", "Arts", "English", "History"]}
+            data={Object.keys(notes)}
             renderItem={({ item }) => (
               <TouchableOpacity
                 key={item}
@@ -99,7 +119,7 @@ export default function HomeScreen() {
 
           {/* Notes List */}
           <FlatList
-            data={mockNotes[activeCategory]}
+            data={notes[activeCategory]}
             renderItem={renderNoteItem}
             keyExtractor={(item) => item.id}
             style={styles.notesList}
@@ -229,5 +249,3 @@ const styles = StyleSheet.create({
     color: "#6b7280",
   },
 });
-
-
