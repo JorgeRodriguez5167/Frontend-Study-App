@@ -1,9 +1,17 @@
 import { useState } from "react"
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, FlatList } from "react-native"
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  FlatList,
+  Image,
+} from "react-native"
 import { useNavigation } from "@react-navigation/native"
 import Icon from "react-native-vector-icons/Feather"
 
-// Mock notes data
 const mockNotes = {
   work: [
     { id: "1", title: "Meeting notes", content: "Discuss project timeline with team members..." },
@@ -42,9 +50,8 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>NoteApp</Text>
-        </View>
+        <Text style={styles.headerTitle}>NoteApp</Text>
+        <Image source={require("../assets/NoteAppLogo.png")} style={styles.logo} />
         <TouchableOpacity style={styles.accountButton} onPress={() => navigation.navigate("AccountSettings")}>
           <Icon name="settings" size={20} color="white" />
           <Text style={styles.accountButtonText}>Account</Text>
@@ -54,7 +61,7 @@ export default function HomeScreen() {
       {/* Scrollable Content */}
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={{ paddingBottom: 24 }}
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.title}>My Notes</Text>
@@ -93,8 +100,13 @@ export default function HomeScreen() {
                     style={[styles.categoryTab, activeCategory === category && styles.activeCategoryTab]}
                     onPress={() => setActiveCategory(category)}
                   >
-                    <Text style={[styles.categoryTabText, activeCategory === category && styles.activeCategoryTabText]}>
-                      {category.charAt(0).toUpperCase() + category.slice(1)}
+                    <Text
+                      style={[
+                        styles.categoryTabText,
+                        activeCategory === category && styles.activeCategoryTabText,
+                      ]}
+                    >
+                      {category}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -107,6 +119,7 @@ export default function HomeScreen() {
               renderItem={renderNoteItem}
               keyExtractor={(item) => item.id}
               style={styles.notesList}
+              scrollEnabled={false} // disables independent scroll so parent ScrollView controls it
             />
           </View>
         </View>
@@ -131,6 +144,12 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: "white",
+  },
+  logo: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginLeft: 8,
   },
   accountButton: {
     backgroundColor: "rgba(255, 255, 255, 0.2)",
