@@ -135,7 +135,7 @@ export default function RecordAudioScreen() {
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Record Audio Note</Text>
-            <Text style={styles.cardDescription}>Click the button to start recording your audio note</Text>
+            <Text style={styles.cardDescription}>Click the Button to start recording your audio note</Text>
           </View>
 
           <View style={styles.recordingContainer}>
