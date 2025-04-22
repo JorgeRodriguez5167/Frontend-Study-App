@@ -191,16 +191,16 @@ export default function RecordAudioScreen() {
             )}
 
             {audioUri && !isRecording && (
-              <>
+              <View style={styles.actionButtonsContainer}>
                 <TouchableOpacity style={styles.replayButton} onPress={playRecording}>
                   <Icon name="play" size={24} color="white" />
                   <Text style={styles.buttonText}>Replay Audio</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.recordButton} onPress={handleSaveRecording}>
+                <TouchableOpacity style={styles.saveButton} onPress={handleSaveRecording}>
                   <Icon name="save" size={24} color="white" />
                   <Text style={styles.buttonText}>Save Recording</Text>
                 </TouchableOpacity>
-              </>
+              </View>
             )}
           </View>
 
@@ -236,14 +236,16 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 20, fontWeight: "bold", color: "#e53e3e", marginBottom: 8 },
   cardDescription: { fontSize: 14, color: "#6b7280", textAlign: "center" },
   recordingContainer: { alignItems: "center", marginBottom: 24 },
-  recordButton: { backgroundColor: "black", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, marginBottom: 10 },
-  stopButton: { backgroundColor: "#e53e3e", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, marginBottom: 10 },
-  replayButton: { backgroundColor: "#000000", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8 },
+  recordButton: { backgroundColor: "black", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, marginBottom: 10, width: '100%', maxWidth: 250 },
+  stopButton: { backgroundColor: "#e53e3e", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, marginBottom: 10, width: '100%', maxWidth: 250 },
+  replayButton: { backgroundColor: "#000000", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, marginBottom: 15, width: '100%', maxWidth: 250 },
+  saveButton: { backgroundColor: "#4CAF50", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, width: '100%', maxWidth: 250 },
   buttonText: { color: "white", fontWeight: "bold", marginLeft: 8 },
-  statusText: { textAlign: "center", color: "#6b7280", fontSize: 14 },
+  statusText: { textAlign: "center", color: "#6b7280", fontSize: 14, marginTop: 20 },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
   modalContent: { backgroundColor: "white", borderRadius: 10, padding: 24, width: "80%", alignItems: "center", marginBottom: 16 },
   modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 16, textAlign: "center" },
   sectionButton: { backgroundColor: "#1f2937", paddingVertical: 10, paddingHorizontal: 24, borderRadius: 8, marginVertical: 6, width: "100%", alignItems: "center" },
   sectionButtonText: { color: "white", fontWeight: "bold" },
+  actionButtonsContainer: { width: '100%', alignItems: "center" }
 });
