@@ -47,3 +47,5 @@ export default StyleSheet.create({
     fontSize: 14,
     color: '#333',
   }
+
+})
