@@ -97,49 +97,41 @@ export default function UploadAudioScreen() {
     }
   };
 
- const saveTranscriptNote = async () => {
-  const userInput = prompt("Enter a title for your transcript:");
-  if (!userInput) return;
-  const finalTitle = `${userInput.trim()} Notes`;
+ const saveNote = async (type, content) => {
+  if (!content) return;
+
+  const baseTitle = prompt(`Save ${type}`, "Enter a title:");
+  if (!baseTitle) return;
+
+  const finalTitle = `${baseTitle.trim()} ${type === 'Summary' ? 'Summary' : 'Notes'}`;
 
   try {
-    await fetch(`${BACKEND_URL}/notes`, {
+    const response = await fetch(`${BACKEND_URL}/notes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        user_id: 2,
         title: finalTitle,
-        content: transcription,
         category: selectedCategory,
-        user_id: 2
+        transcription: type === 'Transcription' ? content : null,
+        summarized_notes: type === 'Summary' ? content : null
       })
     });
-    Alert.alert("Success", `Transcript saved as "${finalTitle}".`);
+
+    const data = await response.json();
+    if (response.ok) {
+      Alert.alert("Success", `${type} saved as '${finalTitle}'`);
+      console.log(`Saved ${type} note`, data);
+    } else {
+      Alert.alert("Failed", `Could not save ${type}.`);
+      console.error("Save error:", data);
+    }
   } catch (err) {
-    Alert.alert("Error", "Failed to save transcript.");
+    console.error('Note save failed:', err);
+    Alert.alert("Error", "Something went wrong.");
   }
 };
 
-const saveSummaryNote = async () => {
-  const userInput = prompt("Enter a title for your summary:");
-  if (!userInput) return;
-  const finalTitle = `${userInput.trim()} Summary`;
-
-  try {
-    await fetch(`${BACKEND_URL}/notes`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: finalTitle,
-        content: summary,
-        category: selectedCategory,
-        user_id: 2
-      })
-    });
-    Alert.alert("Success", `Summary saved as "${finalTitle}".`);
-  } catch (err) {
-    Alert.alert("Error", "Failed to save summary.");
-  }
-};
   return (
     <View style={styles.container}>
       <View style={styles.content}>
@@ -174,41 +166,25 @@ const saveSummaryNote = async () => {
           {uploading && <ActivityIndicator size="large" color="#2196F3" style={{ marginVertical: 10 }} />}
 
           {transcription !== '' && (
-            <ScrollView style={{ padding: 16 }} contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}>
-              <Text style={styles.modalTitle}>Transcription:</Text>
-              <Text>{transcription}</Text>
-            </ScrollView>
-          )}
-
-          {transcription !== '' && (
             <>
               <ScrollView style={{ padding: 16 }} contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}>
                 <Text style={styles.modalTitle}>Transcription:</Text>
                 <Text>{transcription}</Text>
               </ScrollView>
-              <TouchableOpacity style={styles.recordButton} onPress={saveTranscriptNote}>
+              <TouchableOpacity style={styles.recordButton} onPress={() => saveNote('Transcription', transcription)}>
                 <Icon name="save" size={20} color="white" />
                 <Text style={styles.buttonText}>Save Transcript</Text>
               </TouchableOpacity>
             </>
           )}
-
-
-          {summary !== '' && (
-            <ScrollView style={{ padding: 16 }} contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}>
-              <Text style={styles.modalTitle}>Summary:</Text>
-              <Text>{summary}</Text>
-            </ScrollView>
-          )}
-
-
+          
           {summary !== '' && (
             <>
               <ScrollView style={{ padding: 16 }} contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}>
                 <Text style={styles.modalTitle}>Summary:</Text>
                 <Text>{summary}</Text>
               </ScrollView>
-                <TouchableOpacity style={styles.recordButton} onPress={saveSummaryNote}>
+              <TouchableOpacity style={styles.recordButton} onPress={() => saveNote('Summary', summary)}>
                 <Icon name="save" size={20} color="white" />
                 <Text style={styles.buttonText}>Save Summary</Text>
               </TouchableOpacity>
