@@ -122,6 +122,40 @@ export default function RecordAudioScreen() {
     }
   };
 
+  const saveNote = async (type, content) => {
+  if (!content) return;
+
+  Alert.prompt(`Save ${type} Note`, "Enter a title:", async (title) => {
+    if (!title) return;
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: 2,
+          title,
+          category: selectedCategory,
+          transcription: type === 'Transcription' ? content : null,
+          summarized_notes: type === 'Summary' ? content : null
+        })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        Alert.alert("✅ Success", `${type} note saved.`);
+        console.log(`📝 Saved ${type} note`, data);
+      } else {
+        Alert.alert("❌ Failed", `Could not save ${type} note.`);
+        console.error(`Save ${type} failed`, data);
+      }
+    } catch (err) {
+      console.error('Note save failed:', err);
+      Alert.alert("Error", "Something went wrong.");
+    }
+  });
+};
+
   return (
     <View style={styles.container}>
       <View style={styles.content}>
@@ -178,6 +212,22 @@ export default function RecordAudioScreen() {
           
           )}
 
+          {transcription !== '' && (
+            <>
+              <ScrollView
+                style={{ padding: 16 }}
+                contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}
+              >
+                <Text style={styles.modalTitle}>Transcription:</Text>
+                <Text>{transcription}</Text>
+              </ScrollView>
+              <TouchableOpacity style={styles.recordButton} onPress={() => saveNote('Transcription', transcription)}>
+                <Icon name="save" size={20} color="white" />
+                <Text style={styles.buttonText}>Save Transcript</Text>
+              </TouchableOpacity>
+            </>
+          )}
+
           {summary !== '' && (
             <ScrollView 
             style={{ padding: 16 }} 
@@ -187,6 +237,22 @@ export default function RecordAudioScreen() {
             <Text>{summary}</Text>
           </ScrollView>
   
+          )}
+
+          {summary !== '' && (
+            <>
+              <ScrollView
+                style={{ padding: 16 }}
+                contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}
+              >
+                <Text style={styles.modalTitle}>Summary:</Text>
+                <Text>{summary}</Text>
+              </ScrollView>
+              <TouchableOpacity style={styles.recordButton} onPress={() => saveNote('Summary', summary)}>
+                <Icon name="save" size={20} color="white" />
+                <Text style={styles.buttonText}>Save Summary</Text>
+              </TouchableOpacity>
+            </>
           )}
 
           <Text style={styles.statusText}>
