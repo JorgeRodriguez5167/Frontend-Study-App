@@ -71,7 +71,7 @@ export default function RecordAudioScreen() {
       });
       const data = JSON.parse(result.body);
       setTranscription(data.transcription || '');
-      Alert.alert("✅ Transcribed", "Audio was transcribed successfully.");
+      Alert.alert("Transcribed", "Audio was transcribed successfully.");
     } catch (err) {
       console.error('Transcription failed', err);
       Alert.alert('Error', 'Failed to transcribe audio.');
@@ -92,7 +92,7 @@ export default function RecordAudioScreen() {
       });
       const data = await response.json();
       setSummary(data.summary || '');
-      Alert.alert("✅ Summarized", "Summary created successfully.");
+      Alert.alert("Summarized", "Summary created successfully.");
     } catch (err) {
       console.error('Summarization failed', err);
       Alert.alert('Error', 'Failed to summarize the note.');
@@ -120,7 +120,7 @@ export default function RecordAudioScreen() {
           })
         });
         if (response.ok) {
-          Alert.alert("✅ Success", `${type} saved as \"${fullTitle}\"`);
+          Alert.alert( "Success", `${type} saved as \"${fullTitle}\"`);
         } else {
           Alert.alert("Failed", `Could not save ${type}.`);
         }
