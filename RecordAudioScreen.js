@@ -179,8 +179,15 @@ export default function RecordAudioScreen() {
   );
 }
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f3f4f6' },
-  content: { flex: 1, padding: 16, justifyContent: 'center' },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#f3f4f6' 
+  },
+  content: { 
+    flex: 1, 
+    padding: 16, 
+    justifyContent: 'center' 
+  },
   card: {
     backgroundColor: 'white',
     borderRadius: 8,
@@ -191,10 +198,25 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  cardHeader: { alignItems: 'center', marginBottom: 24 },
-  cardTitle: { fontSize: 20, fontWeight: 'bold', color: '#e53e3e', marginBottom: 8 },
-  cardDescription: { fontSize: 14, color: '#6b7280', textAlign: 'center' },
-  recordingContainer: { alignItems: 'center', marginBottom: 24 },
+  cardHeader: { 
+    alignItems: 'center', 
+    marginBottom: 24 
+  },
+  cardTitle: { 
+    fontSize: 20, 
+    fontWeight: 'bold', 
+    color: '#e53e3e', 
+    marginBottom: 8 
+  },
+  cardDescription: { 
+    fontSize: 14, 
+    color: '#6b7280', 
+    textAlign: 'center' 
+  },
+  recordingContainer: { 
+    alignItems: 'center', 
+    marginBottom: 24 
+  },
   recordButton: {
     backgroundColor: 'black',
     flexDirection: 'row',
@@ -225,11 +247,34 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 10,
   },
-  buttonText: { color: 'white', fontWeight: 'bold', marginLeft: 8 },
-  statusText: { textAlign: 'center', color: '#6b7280', fontSize: 14 },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  modalContent: { backgroundColor: 'white', borderRadius: 10, padding: 24, width: '80%', alignItems: 'center' },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 16, textAlign: 'center' },
+ 
+  buttonSpacing: {
+    marginTop: 16, 
+  },
+  statusText: { 
+    textAlign: 'center', 
+    color: '#6b7280', 
+    fontSize: 14 
+  },
+  modalOverlay: { 
+    flex: 1, 
+    backgroundColor: 'rgba(0,0,0,0.5)', 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  modalContent: { 
+    backgroundColor: 'white', 
+    borderRadius: 10, 
+    padding: 24, 
+    width: '80%', 
+    alignItems: 'center' 
+  },
+  modalTitle: { 
+    fontSize: 18, 
+    fontWeight: 'bold', 
+    marginBottom: 16, 
+    textAlign: 'center' 
+  },
   sectionButton: {
     backgroundColor: '#1f2937',
     paddingVertical: 10,
@@ -239,6 +284,15 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
   },
-  sectionButtonText: { color: 'white', fontWeight: 'bold' },
-  transcriptionBox: { maxHeight: 200, marginTop: 10, backgroundColor: '#fff', padding: 10, borderRadius: 6 },
+  sectionButtonText: { 
+    color: 'white', 
+    fontWeight: 'bold' 
+  },
+  transcriptionBox: { 
+    maxHeight: 200, 
+    marginTop: 10, 
+    backgroundColor: '#fff', 
+    padding: 10, 
+    borderRadius: 6 
+  },
 });
