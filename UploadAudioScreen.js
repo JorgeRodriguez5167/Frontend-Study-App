@@ -179,7 +179,7 @@ export default function UploadAudioScreen() {
                 <Text style={styles.modalTitle}>Transcription:</Text>
                 <Text>{transcription}</Text>
               </ScrollView>
-              <TouchableOpacity style={styles.recordButton} onPress={() => saveNote('Transcription', transcription)}>
+              <TouchableOpacity style={styles.recordButton} onPress={saveTranscriptNote}>
                 <Icon name="save" size={20} color="white" />
                 <Text style={styles.buttonText}>Save Transcript</Text>
               </TouchableOpacity>
@@ -201,7 +201,7 @@ export default function UploadAudioScreen() {
                 <Text style={styles.modalTitle}>Summary:</Text>
                 <Text>{summary}</Text>
               </ScrollView>
-              <TouchableOpacity style={styles.recordButton} onPress={() => saveNote('Summary', summary)}>
+                <TouchableOpacity style={styles.recordButton} onPress={saveSummaryNote}>
                 <Icon name="save" size={20} color="white" />
                 <Text style={styles.buttonText}>Save Summary</Text>
               </TouchableOpacity>
