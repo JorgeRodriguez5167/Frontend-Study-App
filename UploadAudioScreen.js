@@ -65,7 +65,7 @@ export default function UploadAudioScreen() {
 
       const data = await res.json();
       setTranscription(data.transcription || '');
-      Alert.alert(' Transcription Complete', 'Audio has been successfully transcribed.');
+      Alert.alert('✅ Transcription Complete', 'Audio has been successfully transcribed.');
     } catch (error) {
       console.error('Transcription error:', error);
       Alert.alert('Error', 'Failed to transcribe audio.');
@@ -87,7 +87,7 @@ export default function UploadAudioScreen() {
 
       const data = await response.json();
       setSummary(data.summary || '');
-      Alert.alert(' Summarized', 'Summary created successfully.');
+      Alert.alert('✅ Summarized', 'Summary created successfully.');
     } catch (err) {
       console.error('Summarization failed', err);
       Alert.alert('Error', 'Failed to summarize.');
@@ -117,7 +117,7 @@ export default function UploadAudioScreen() {
         });
 
         if (response.ok) {
-          Alert.alert(' Success', `${type} saved as "${fullTitle}"`);
+          Alert.alert('✅ Success', `${type} saved as "${fullTitle}"`);
         } else {
           Alert.alert('Failed', `Could not save ${type}.`);
         }
@@ -288,4 +288,15 @@ const styles = StyleSheet.create({
   supportedFormats: { textAlign: 'center', color: '#6b7280', fontSize: 14, marginTop: 16 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
   modalContent: { backgroundColor: 'white', borderRadius: 10, padding: 24, width: '80%', alignItems: 'center' },
-  modalTitle: {
+  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 16, textAlign: 'center' },
+  sectionButton: {
+    backgroundColor: '#1f2937',
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginVertical: 6,
+    width: '100%',
+    alignItems: 'center',
+  },
+  sectionButtonText: { color: 'white', fontWeight: 'bold' },
+});
