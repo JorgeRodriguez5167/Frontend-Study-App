@@ -117,7 +117,7 @@ export default function UploadAudioScreen() {
       const data = await response.json();
       if (response.ok) {
         Alert.alert("Success", `${type} saved as "${title}"`);
-        console.log("Saved ${type}`, data);
+        console.log('Saved ${type}`, data);
       } else {
         Alert.alert("Failed", `Could not save ${type}.`);
         console.error("Save error:", data);
