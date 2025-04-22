@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, FlatList } from "react-native"
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, FlatList, Modal, TextInput, ActivityIndicator, Alert } from "react-native"
 import { useNavigation } from "@react-navigation/native"
 import Icon from "react-native-vector-icons/Feather"
 
@@ -29,6 +29,11 @@ const mockNotes = {
 
 export default function HomeScreen() {
   const [activeCategory, setActiveCategory] = useState("misc")
+  const [studyGuideModalVisible, setStudyGuideModalVisible] = useState(false)
+  const [categoryInput, setCategoryInput] = useState("")
+  const [studyGuide, setStudyGuide] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [studyGuideResult, setStudyGuideResult] = useState({ visible: false, content: "", category: "" })
   const navigation = useNavigation()
 
   const renderNoteItem = ({ item }) => (
@@ -37,6 +42,46 @@ export default function HomeScreen() {
       <Text style={styles.noteContent}>{item.content}</Text>
     </View>
   )
+
+  const handleCreateStudyGuide = async () => {
+    if (!categoryInput.trim()) {
+      Alert.alert("Error", "Please enter a category");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch('https://backend-study-app-production.up.railway.app/study-guide', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ category: categoryInput.trim() }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setStudyGuideResult({
+        visible: true,
+        content: data.guide,
+        category: data.category
+      });
+      setStudyGuideModalVisible(false);
+      setCategoryInput("");
+    } catch (error) {
+      console.error('Error creating study guide:', error);
+      Alert.alert("Error", "Failed to create study guide. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const closeStudyGuideResult = () => {
+    setStudyGuideResult({ visible: false, content: "", category: "" });
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -73,6 +118,14 @@ export default function HomeScreen() {
             <TouchableOpacity style={styles.whiteButton} onPress={() => navigation.navigate("UploadText")}>
               <Icon name="file-text" size={20} color="black" />
               <Text style={styles.whiteButtonText}>Upload Text</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.whiteButton, {backgroundColor: '#f0f8ff', borderColor: '#4169e1'}]} 
+              onPress={() => setStudyGuideModalVisible(true)}
+            >
+              <Icon name="book" size={20} color="#4169e1" />
+              <Text style={[styles.whiteButtonText, {color: '#4169e1'}]}>Create Study Guide</Text>
             </TouchableOpacity>
           </View>
 
@@ -111,6 +164,73 @@ export default function HomeScreen() {
           </View>
         </View>
       </View>
+
+      {/* Study Guide Category Input Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={studyGuideModalVisible}
+        onRequestClose={() => setStudyGuideModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Create Study Guide</Text>
+            <Text style={styles.modalDescription}>
+              Enter the category to create a study guide from all your notes in that category.
+            </Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Enter category (e.g., Biology, History)"
+              value={categoryInput}
+              onChangeText={setCategoryInput}
+            />
+            <View style={styles.modalButtonContainer}>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.modalCancelButton]} 
+                onPress={() => {
+                  setStudyGuideModalVisible(false);
+                  setCategoryInput("");
+                }}
+              >
+                <Text style={styles.modalCancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.modalCreateButton]} 
+                onPress={handleCreateStudyGuide}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="white" size="small" />
+                ) : (
+                  <Text style={styles.modalCreateButtonText}>Create</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Study Guide Result Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={studyGuideResult.visible}
+        onRequestClose={closeStudyGuideResult}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, styles.studyGuideResultModal]}>
+            <View style={styles.studyGuideHeader}>
+              <Text style={styles.studyGuideTitle}>Study Guide: {studyGuideResult.category}</Text>
+              <TouchableOpacity onPress={closeStudyGuideResult}>
+                <Icon name="x" size={24} color="#000" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.studyGuideContent}>
+              <Text style={styles.studyGuideText}>{studyGuideResult.content}</Text>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -249,5 +369,91 @@ const styles = StyleSheet.create({
   },
   noteContent: {
     color: "#6b7280",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    width: '100%',
+    maxWidth: 500,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  modalDescription: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#666',
+  },
+  modalInput: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 20,
+    fontSize: 16,
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  modalButton: {
+    padding: 12,
+    borderRadius: 5,
+    width: '48%',
+    alignItems: 'center',
+  },
+  modalCancelButton: {
+    backgroundColor: '#f2f2f2',
+  },
+  modalCreateButton: {
+    backgroundColor: '#4169e1',
+  },
+  modalCancelButtonText: {
+    color: '#333',
+    fontWeight: '500',
+  },
+  modalCreateButtonText: {
+    color: 'white',
+    fontWeight: '500',
+  },
+  studyGuideResultModal: {
+    height: '80%',
+    alignItems: 'stretch',
+  },
+  studyGuideHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    marginBottom: 10,
+  },
+  studyGuideTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  studyGuideContent: {
+    flex: 1,
+    width: '100%',
+  },
+  studyGuideText: {
+    fontSize: 16,
+    lineHeight: 24,
   },
 })
