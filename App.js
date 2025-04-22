@@ -24,6 +24,10 @@ const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [age, setAge] = useState('');
+  const [major, setMajor] = useState('');
 
   const handleLogin = () => {
     if (username.trim() === '' || password.trim() === '') {
@@ -38,7 +42,11 @@ const LoginScreen = ({ navigation }) => {
       username.trim() === '' ||
       email.trim() === '' ||
       password.trim() === '' ||
-      confirmPassword.trim() === ''
+      confirmPassword.trim() === '' ||
+      firstName.trim() === '' ||
+      lastName.trim() === '' ||
+      age.trim() === '' ||
+      major.trim() === ''
     ) {
       Alert.alert('Error', 'Please fill out all fields.');
       return;
@@ -111,21 +119,47 @@ const LoginScreen = ({ navigation }) => {
                 />
                 <TextInput
                   style={styles.input}
-                  placeholder="Enter your email"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
+                  placeholder="First Name"
+                  value={firstName}
+                  onChangeText={setFirstName}
                 />
                 <TextInput
                   style={styles.input}
-                  placeholder="Create a password"
+                  placeholder="Last Name"
+                  value={lastName}
+                  onChangeText={setLastName}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Email"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Age"
+                  value={age}
+                  onChangeText={setAge}
+                  keyboardType="numeric"
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Major"
+                  value={major}
+                  onChangeText={setMajor}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Password"
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry
                 />
                 <TextInput
                   style={styles.input}
-                  placeholder="Confirm your password"
+                  placeholder="Confirm Password"
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
                   secureTextEntry
