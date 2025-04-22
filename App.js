@@ -216,10 +216,7 @@ const LoginScreen = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       {/* Logo - centered at the top, hidden when signup tab is active */}
       {activeTab !== 'signup' && (
-        <Image 
-          source={NoteAppLogo} 
-          style={styles.centeredLogo}
-        />
+        <Text style={styles.titleText}>Study Assistant</Text>
       )}
 
       <KeyboardAvoidingView
@@ -524,5 +521,13 @@ const styles = StyleSheet.create({
   loader: {
     marginTop: 20,
     marginBottom: 10,
+  },
+  titleText: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginTop: 30,
+    marginBottom: 20,
+    color: '#e53e3e',
+    textAlign: 'center',
   },
 });
