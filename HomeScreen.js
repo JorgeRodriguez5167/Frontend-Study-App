@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, FlatList } from "react-native"
 import { useNavigation } from "@react-navigation/native"
@@ -45,7 +44,6 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <View>
           <Text style={styles.headerTitle}>NoteApp</Text>
-          
         </View>
         <TouchableOpacity style={styles.accountButton} onPress={() => navigation.navigate("AccountSettings")}>
           <Icon name="settings" size={20} color="white" />
@@ -53,7 +51,12 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scrollView}>
+      {/* Scrollable Content */}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+      >
         <Text style={styles.title}>My Notes</Text>
 
         <View style={styles.content}>
@@ -103,7 +106,6 @@ export default function HomeScreen() {
               data={mockNotes[activeCategory]}
               renderItem={renderNoteItem}
               keyExtractor={(item) => item.id}
-              
               style={styles.notesList}
             />
           </View>
@@ -243,3 +245,5 @@ const styles = StyleSheet.create({
     color: "#6b7280",
   },
 })
+
+
