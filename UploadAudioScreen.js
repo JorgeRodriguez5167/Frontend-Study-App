@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, Alert, Modal, ActivityIndicator, Platform
+  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Modal, Platform
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
@@ -12,7 +12,8 @@ export default function UploadAudioScreen() {
   const [audioUri, setAudioUri] = useState(null);
   const [transcription, setTranscription] = useState('');
   const [summary, setSummary] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [summarizing, setSummarizing] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
 
@@ -38,7 +39,9 @@ export default function UploadAudioScreen() {
 
   const transcribeAudio = async () => {
     if (!audioUri) return;
-    setLoading(true);
+    setUploading(true);
+    setTranscription('');
+
     try {
       let response;
       if (Platform.OS === 'web') {
@@ -63,18 +66,19 @@ export default function UploadAudioScreen() {
 
       const data = await response.json();
       setTranscription(data.transcription || '');
-      Alert.alert("✅ Transcribed", "Audio transcription completed.");
+      Alert.alert("✅ Transcribed", "Audio was transcribed successfully.");
     } catch (err) {
       console.error('Transcription failed', err);
       Alert.alert('Error', 'Failed to transcribe audio.');
     } finally {
-      setLoading(false);
+      setUploading(false);
     }
   };
 
   const summarizeText = async () => {
     if (!transcription) return;
-    setLoading(true);
+    setSummarizing(true);
+
     try {
       const response = await fetch(`${BACKEND_URL}/summarize`, {
         method: 'POST',
@@ -89,45 +93,40 @@ export default function UploadAudioScreen() {
       console.error('Summarization failed', err);
       Alert.alert('Error', 'Failed to summarize the note.');
     } finally {
-      setLoading(false);
+      setSummarizing(false);
     }
   };
 
-  const makeNote = async (type, content) => {
-    if (!content || !selectedCategory) return;
-    const baseTitle = prompt(`Enter a title for your ${type}:`);
-    if (!baseTitle) return;
+  const saveNote = async (type, content) => {
+    if (!content) return;
 
-    const title = `${baseTitle.trim()} ${type === 'Summary' ? 'Summary' : 'Notes'}`;
-    setLoading(true);
+    Alert.prompt(`Save ${type}`, "Enter a title:", async (title) => {
+      if (!title) return;
 
-    try {
-      const response = await fetch(`${BACKEND_URL}/notes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: 2,
-          title,
-          category: selectedCategory,
-          transcription: type === 'Transcription' ? content : null,
-          summarized_notes: type === 'Summary' ? content : null
-        })
-      });
+      const fullTitle = `${title} ${type === 'Summary' ? 'Summary' : 'Notes'}`;
 
-      const data = await response.json();
-      if (response.ok) {
-        Alert.alert("✅ Success", `${type} saved as "${title}"`);
-        console.log(`📝 Saved ${type}`, data);
-      } else {
-        Alert.alert("❌ Failed", `Could not save ${type}.`);
-        console.error("Save error:", data);
+      try {
+        const response = await fetch(`${BACKEND_URL}/notes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: fullTitle,
+            content,
+            category: selectedCategory,
+            user_id: 2
+          }),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          Alert.alert("✅ Success", `${type} saved as "${fullTitle}"`);
+        } else {
+          Alert.alert("Failed", `Could not save ${type}.`);
+        }
+      } catch (err) {
+        Alert.alert("Error", "Failed to save note.");
       }
-    } catch (err) {
-      console.error("Save failed:", err);
-      Alert.alert("Error", "Something went wrong.");
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
   return (
@@ -150,28 +149,38 @@ export default function UploadAudioScreen() {
                 <Icon name="file-text" size={24} color="white" />
                 <Text style={styles.buttonText}>Transcribe</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.recordButton} onPress={summarizeText}>
+              <TouchableOpacity
+                style={[styles.stopButton, { backgroundColor: summarizing || !transcription ? '#999' : '#e53e3e' }]}
+                disabled={!transcription || summarizing}
+                onPress={summarizeText}
+              >
                 <Icon name="book-open" size={24} color="white" />
                 <Text style={styles.buttonText}>Summarize</Text>
               </TouchableOpacity>
-              {transcription !== '' && (
-                <TouchableOpacity style={styles.recordButton} onPress={() => makeNote('Transcription', transcription)}>
-                  <Icon name="save" size={20} color="white" />
-                  <Text style={styles.buttonText}>Save Transcript</Text>
-                </TouchableOpacity>
-              )}
-              {summary !== '' && (
-                <TouchableOpacity style={styles.recordButton} onPress={() => makeNote('Summary', summary)}>
-                  <Icon name="save" size={20} color="white" />
-                  <Text style={styles.buttonText}>Save Summary</Text>
-                </TouchableOpacity>
-              )}
+              <TouchableOpacity
+                style={styles.recordButton}
+                onPress={() => saveNote("Notes", transcription)}
+                disabled={!transcription}
+              >
+                <Icon name="save" size={20} color="white" />
+                <Text style={styles.buttonText}>Save Transcript</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.recordButton}
+                onPress={() => saveNote("Summary", summary)}
+                disabled={!summary}
+              >
+                <Icon name="save" size={20} color="white" />
+                <Text style={styles.buttonText}>Save Summary</Text>
+              </TouchableOpacity>
             </>
           )}
 
-          {loading && <ActivityIndicator size="large" color="#2196F3" style={{ marginVertical: 10 }} />}
+          {uploading && <ActivityIndicator size="large" color="#2196F3" style={{ marginVertical: 10 }} />}
+          {summarizing && <ActivityIndicator size="large" color="#e53e3e" style={{ marginVertical: 10 }} />}
+
           <Text style={styles.statusText}>
-            {audioUri ? "Audio selected. Ready to process." : "No audio file selected."}
+            {audioUri ? "Audio selected. Ready to transcribe." : "No audio file selected."}
           </Text>
         </View>
       </View>
@@ -200,6 +209,7 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 20, fontWeight: "bold", color: "#e53e3e", marginBottom: 8 },
   cardDescription: { fontSize: 14, color: "#6b7280", textAlign: "center" },
   recordButton: { backgroundColor: "black", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, marginBottom: 10 },
+  stopButton: { backgroundColor: "#e53e3e", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, marginBottom: 10 },
   buttonText: { color: "white", fontWeight: "bold", marginLeft: 8 },
   statusText: { textAlign: "center", color: "#6b7280", fontSize: 14 },
   modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 16, textAlign: "center" },
@@ -208,4 +218,3 @@ const styles = StyleSheet.create({
   sectionButton: { backgroundColor: "#1f2937", paddingVertical: 10, paddingHorizontal: 24, borderRadius: 8, marginVertical: 6, width: "100%", alignItems: "center" },
   sectionButtonText: { color: "white", fontWeight: "bold" },
 });
-
