@@ -9,18 +9,13 @@ const BACKEND_URL = 'https://backend-study-app-production.up.railway.app';
 export default function RecordAudioScreen() {
   const [isRecording, setIsRecording] = useState(false);
   const [audioUri, setAudioUri] = useState(null);
-  const [transcription, setTranscription] = useState('');
-  const [summary, setSummary] = useState('');
   const [uploading, setUploading] = useState(false);
-  const [summarizing, setSummarizing] = useState(false);
   const [sound, setSound] = useState();
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
 
   const startRecording = async () => {
     try {
-      setTranscription('');
-      setSummary('');
       const permission = await Audio.requestPermissionsAsync();
       if (!permission.granted) throw new Error('Permission to access microphone is required');
 
@@ -63,87 +58,97 @@ export default function RecordAudioScreen() {
     startRecording();
   };
 
-  const transcribeAudio = async () => {
+  const handleSaveRecording = async () => {
     if (!audioUri) return;
-    setUploading(true);
-    setTranscription('');
-
-    try {
-      let response;
-      if (Platform.OS === 'web') {
-        const blob = await (await fetch(audioUri)).blob();
-        const formData = new FormData();
-        formData.append('file', new File([blob], 'recording.wav', { type: 'audio/wav' }));
-        response = await fetch(`${BACKEND_URL}/transcribe?stream=false`, {
-          method: 'POST',
-          body: formData,
-        });
-      } else {
-        const result = await FileSystem.uploadAsync(`${BACKEND_URL}/transcribe?stream=false`, audioUri, {
-          fieldName: 'file',
-          httpMethod: 'POST',
-          uploadType: FileSystem.FileSystemUploadType.MULTIPART,
-          mimeType: 'audio/m4a',
-        });
-        response = {
-          json: async () => JSON.parse(result.body),
-        };
-      }
-
-      const data = await response.json();
-      console.log('Transcribe response:', data);
-      setTranscription(data.transcription || '');
-    } catch (err) {
-      console.error('Transcription failed', err);
-      Alert.alert('Error', 'Failed to transcribe audio.');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const summarizeText = async () => {
-    if (!transcription) return;
-    setSummarizing(true);
-
-    try {
-      const response = await fetch(`${BACKEND_URL}/summarize`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: transcription }),
-      });
-
-      const data = await response.json();
-      setSummary(data.summary);
-    } catch (err) {
-      console.error('Summarization failed', err);
-      Alert.alert('Error', 'Failed to summarize the note.');
-    } finally {
-      setSummarizing(false);
-    }
-  };
-
-  const saveNote = async (type, content) => {
-    if (!content) return;
-
-    // Use Alert.prompt instead of prompt
+    
+    // First ask for a title before processing
     Alert.prompt(
-      `Save ${type}`,
-      "Enter a title:",
+      "Save Recording",
+      "Enter a title for your note:",
       [
         {
           text: 'Cancel',
-          style: 'cancel',
+          style: 'cancel'
         },
         {
           text: 'Save',
-          onPress: (baseTitle) => {
-            if (!baseTitle || baseTitle.trim() === '') return;
+          onPress: async (title) => {
+            if (!title || title.trim() === '') {
+              Alert.alert('Error', 'Please enter a valid title.');
+              return;
+            }
             
-            // Final title with correct suffix
-            const finalTitle = `${baseTitle.trim()} ${type === 'Summary' ? 'Summary' : 'Notes'}`;
+            // Show loading indicator
+            setUploading(true);
             
-            // Save the note
-            saveNoteToServer(finalTitle, type, content);
+            try {
+              // Step 1: Transcribe the audio
+              let transcribeResponse;
+              if (Platform.OS === 'web') {
+                const blob = await (await fetch(audioUri)).blob();
+                const formData = new FormData();
+                formData.append('file', new File([blob], 'recording.wav', { type: 'audio/wav' }));
+                transcribeResponse = await fetch(`${BACKEND_URL}/transcribe?stream=false`, {
+                  method: 'POST',
+                  body: formData,
+                });
+              } else {
+                const result = await FileSystem.uploadAsync(`${BACKEND_URL}/transcribe?stream=false`, audioUri, {
+                  fieldName: 'file',
+                  httpMethod: 'POST',
+                  uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+                  mimeType: 'audio/m4a',
+                });
+                transcribeResponse = {
+                  json: async () => JSON.parse(result.body),
+                };
+              }
+              
+              const transcribeData = await transcribeResponse.json();
+              const transcription = transcribeData.transcription || '';
+              
+              if (!transcription) {
+                throw new Error('Failed to transcribe the audio.');
+              }
+              
+              // Step 2: Summarize the transcription
+              const summarizeResponse = await fetch(`${BACKEND_URL}/summarize`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: transcription }),
+              });
+              
+              const summarizeData = await summarizeResponse.json();
+              const summary = summarizeData.summary || '';
+              
+              // Step 3: Save the note with all data
+              const saveResponse = await fetch(`${BACKEND_URL}/notes`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  user_id: 2, // Replace with actual user ID
+                  title: title.trim(),
+                  category: selectedCategory,
+                  transcription: transcription,
+                  summarized_notes: summary
+                })
+              });
+              
+              const saveData = await saveResponse.json();
+              
+              if (saveResponse.ok) {
+                Alert.alert("Success", "Note saved successfully!");
+                // Clear states for a new recording
+                setAudioUri(null);
+              } else {
+                throw new Error('Failed to save the note.');
+              }
+            } catch (err) {
+              console.error('Process failed:', err);
+              Alert.alert('Error', err.message || 'Failed to process recording.');
+            } finally {
+              setUploading(false);
+            }
           }
         },
       ],
@@ -151,34 +156,6 @@ export default function RecordAudioScreen() {
     );
   };
 
-  const saveNoteToServer = async (finalTitle, type, content) => {
-    try {
-      const response = await fetch(`${BACKEND_URL}/notes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: 2,                        // <- or get this from auth
-          title: finalTitle,
-          category: selectedCategory,
-          transcription: type === 'Transcription' ? content : null,
-          summarized_notes: type === 'Summary' ? content : null
-        })
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        Alert.alert("Success", `${type} saved as '${finalTitle}'`);
-        console.log(`Saved ${type} note`, data);
-      } else {
-        Alert.alert("Failed", `Could not save ${type}.`);
-        console.error("Save error:", data);
-      }
-    } catch (err) {
-      console.error('Note save failed:', err);
-      Alert.alert("Error", "Something went wrong.");
-    }
-  };
-  
   return (
     <View style={styles.container}>
       <View style={styles.content}>
@@ -207,17 +184,9 @@ export default function RecordAudioScreen() {
                   <Icon name="play" size={24} color="white" />
                   <Text style={styles.buttonText}>Replay Audio</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.recordButton} onPress={transcribeAudio}>
-                  <Icon name="upload" size={24} color="white" />
-                  <Text style={styles.buttonText}>Transcribe</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.stopButton, { backgroundColor: summarizing || !transcription ? '#999' : '#e53e3e' }]}
-                  disabled={!transcription || summarizing}
-                  onPress={summarizeText}
-                >
-                  <Icon name="book-open" size={24} color="white" />
-                  <Text style={styles.buttonText}>Summarize</Text>
+                <TouchableOpacity style={styles.recordButton} onPress={handleSaveRecording}>
+                  <Icon name="save" size={24} color="white" />
+                  <Text style={styles.buttonText}>Save Recording</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -225,34 +194,8 @@ export default function RecordAudioScreen() {
 
           {uploading && <ActivityIndicator size="large" color="#2196F3" style={{ marginVertical: 10 }} />}
 
-         {transcription !== '' && (
-          <>
-            <ScrollView style={{ padding: 16 }} contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}>
-              <Text style={styles.modalTitle}>Transcription:</Text>
-              <Text>{transcription}</Text>
-            </ScrollView>
-            <TouchableOpacity style={styles.recordButton} onPress={() => saveNote('Transcription', transcription)}>
-              <Icon name="save" size={20} color="white" />
-              <Text style={styles.buttonText}>Save Transcript</Text>
-            </TouchableOpacity>
-          </>
-        )}
-        
-        {summary !== '' && (
-          <>
-            <ScrollView style={{ padding: 16 }} contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}>
-              <Text style={styles.modalTitle}>Summary:</Text>
-              <Text>{summary}</Text>
-            </ScrollView>
-            <TouchableOpacity style={styles.recordButton} onPress={() => saveNote('Summary', summary)}>
-              <Icon name="save" size={20} color="white" />
-              <Text style={styles.buttonText}>Save Summary</Text>
-            </TouchableOpacity>
-          </>
-        )}
-
           <Text style={styles.statusText}>
-            {isRecording ? "Recording in progress..." : audioUri ? "Recording saved. Ready to replay." : "Ready to record"}
+            {isRecording ? "Recording in progress..." : audioUri ? "Recording saved. Ready to save." : "Ready to record"}
           </Text>
         </View>
       </View>
