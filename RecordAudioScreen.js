@@ -223,7 +223,7 @@ export default function RecordAudioScreen() {
               <Text style={styles.buttonText}>Save Transcript</Text>
             </TouchableOpacity>
           )}
-
+{/*
           {summary !== '' && (
             <ScrollView 
             style={{ padding: 16 }} 
@@ -234,7 +234,7 @@ export default function RecordAudioScreen() {
           </ScrollView>
   
           )}
-
+*/}
           {summary !== '' && (
             <TouchableOpacity
               style={[styles.stopButton, { backgroundColor: "#e53e3e" }]}
