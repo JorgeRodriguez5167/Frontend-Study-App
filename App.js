@@ -27,11 +27,10 @@ const LoginScreen = ({ navigation }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [age, setAge] = useState('');
-  const [major, setMajor] = useState('');
   const [month, setMonth] = useState('');
   const [day, setDay] = useState('');
   const [year, setYear] = useState('');
+  const [major, setMajor] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = () => {
@@ -118,7 +117,6 @@ const LoginScreen = ({ navigation }) => {
       confirmPassword.trim() === '' ||
       firstName.trim() === '' ||
       lastName.trim() === '' ||
-      age.trim() === '' ||
       major.trim() === '' ||
       month.trim() === '' ||
       day.trim() === '' ||
@@ -154,7 +152,6 @@ const LoginScreen = ({ navigation }) => {
       email: email,
       first_name: firstName,
       last_name: lastName,
-      age: parseInt(age),
       major: major,
       date_of_birth: dateOfBirth
     };
@@ -201,6 +198,18 @@ const LoginScreen = ({ navigation }) => {
     .catch(error => {
       Alert.alert('Error', error.message);
     });
+  };
+
+  const clearForm = () => {
+    setEmail('');
+    setUsername('');
+    setPassword('');
+    setConfirmPassword('');
+    setFirstName('');
+    setLastName('');
+    setMajor('');
+    setIsSignup(false);
+    setErrorMessage('');
   };
 
   return (
@@ -330,13 +339,6 @@ const LoginScreen = ({ navigation }) => {
                       />
                     </View>
                   </View>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Age"
-                    value={age}
-                    onChangeText={setAge}
-                    keyboardType="numeric"
-                  />
                   <TextInput
                     style={styles.input}
                     placeholder="Major"

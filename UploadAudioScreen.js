@@ -100,11 +100,30 @@ export default function UploadAudioScreen() {
  const saveNote = async (type, content) => {
   if (!content) return;
 
-  const baseTitle = prompt(`Save ${type}`, "Enter a title:");
-  if (!baseTitle) return;
+  Alert.prompt(
+    `Save ${type}`,
+    "Enter a title:",
+    [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Save',
+        onPress: (baseTitle) => {
+          if (!baseTitle || baseTitle.trim() === '') return;
+          
+          const finalTitle = `${baseTitle.trim()} ${type === 'Summary' ? 'Summary' : 'Notes'}`;
+          
+          saveNoteToServer(finalTitle, type, content);
+        }
+      },
+    ],
+    'plain-text'
+  );
+};
 
-  const finalTitle = `${baseTitle.trim()} ${type === 'Summary' ? 'Summary' : 'Notes'}`;
-
+const saveNoteToServer = async (finalTitle, type, content) => {
   try {
     const response = await fetch(`${BACKEND_URL}/notes`, {
       method: 'POST',

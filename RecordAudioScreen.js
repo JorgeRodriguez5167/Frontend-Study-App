@@ -122,42 +122,62 @@ export default function RecordAudioScreen() {
     }
   };
 
-const saveNote = async (type, content) => {
-  if (!content) return;
+  const saveNote = async (type, content) => {
+    if (!content) return;
 
-  // Ask user for the custom part of the title
-  const baseTitle = prompt(`Save ${type}`, "Enter a title:");
-  if (!baseTitle) return;
+    // Use Alert.prompt instead of prompt
+    Alert.prompt(
+      `Save ${type}`,
+      "Enter a title:",
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Save',
+          onPress: (baseTitle) => {
+            if (!baseTitle || baseTitle.trim() === '') return;
+            
+            // Final title with correct suffix
+            const finalTitle = `${baseTitle.trim()} ${type === 'Summary' ? 'Summary' : 'Notes'}`;
+            
+            // Save the note
+            saveNoteToServer(finalTitle, type, content);
+          }
+        },
+      ],
+      'plain-text'
+    );
+  };
 
-  // Final title with correct suffix
-  const finalTitle = `${baseTitle.trim()} ${type === 'Summary' ? 'Summary' : 'Notes'}`;
+  const saveNoteToServer = async (finalTitle, type, content) => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: 2,                        // <- or get this from auth
+          title: finalTitle,
+          category: selectedCategory,
+          transcription: type === 'Transcription' ? content : null,
+          summarized_notes: type === 'Summary' ? content : null
+        })
+      });
 
-  try {
-    const response = await fetch(`${BACKEND_URL}/notes`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        user_id: 2,                        // <- or get this from auth
-        title: finalTitle,
-        category: selectedCategory,
-        transcription: type === 'Transcription' ? content : null,
-        summarized_notes: type === 'Summary' ? content : null
-      })
-    });
-
-    const data = await response.json();
-    if (response.ok) {
-      Alert.alert("Success", `${type} saved as '${finalTitle}'`);
-      console.log(`Saved ${type} note`, data);
-    } else {
-      Alert.alert("Failed", `Could not save ${type}.`);
-      console.error("Save error:", data);
+      const data = await response.json();
+      if (response.ok) {
+        Alert.alert("Success", `${type} saved as '${finalTitle}'`);
+        console.log(`Saved ${type} note`, data);
+      } else {
+        Alert.alert("Failed", `Could not save ${type}.`);
+        console.error("Save error:", data);
+      }
+    } catch (err) {
+      console.error('Note save failed:', err);
+      Alert.alert("Error", "Something went wrong.");
     }
-  } catch (err) {
-    console.error('Note save failed:', err);
-    Alert.alert("Error", "Something went wrong.");
-  }
-};
+  };
   
   return (
     <View style={styles.container}>
@@ -203,7 +223,7 @@ const saveNote = async (type, content) => {
             )}
           </View>
 
-          )}
+          {uploading && <ActivityIndicator size="large" color="#2196F3" style={{ marginVertical: 10 }} />}
 
          {transcription !== '' && (
           <>
@@ -230,8 +250,6 @@ const saveNote = async (type, content) => {
             </TouchableOpacity>
           </>
         )}
-
-
 
           <Text style={styles.statusText}>
             {isRecording ? "Recording in progress..." : audioUri ? "Recording saved. Ready to replay." : "Ready to record"}
