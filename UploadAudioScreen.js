@@ -120,7 +120,7 @@ export default function UploadAudioScreen() {
         console.log('Saved ${type}`, data);
       } else {
         Alert.alert("Failed", `Could not save ${type}.`);
-        console.error("Save error:", data);
+        console.error('Save error:", data);
       }
     } catch (err) {
       console.error("Save failed:", err);
