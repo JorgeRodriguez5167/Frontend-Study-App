@@ -28,13 +28,63 @@ const LoginScreen = ({ navigation }) => {
   const [lastName, setLastName] = useState('');
   const [age, setAge] = useState('');
   const [major, setMajor] = useState('');
+  const [month, setMonth] = useState('');
+  const [day, setDay] = useState('');
+  const [year, setYear] = useState('');
 
   const handleLogin = () => {
     if (username.trim() === '' || password.trim() === '') {
       Alert.alert('Error', 'Please enter both username and password.');
       return;
     }
-    navigation.replace('Home');
+    
+    // Call the backend API to login
+    const loginData = {
+      username: username,
+      password: password
+    };
+
+    // Railway hosted backend URL - correct domain
+    fetch('https://backend-study-app-production.up.railway.app/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(loginData),
+    })
+    .then(response => {
+      console.log('Login response status:', response.status);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Backend service not found. Please check if the server is running.');
+        }
+        if (response.status === 500) {
+          throw new Error('Server error. Please try again later.');
+        }
+        
+        return response.text().then(text => {
+          try {
+            const data = JSON.parse(text);
+            throw new Error(data.detail || data.message || 'Login failed');
+          } catch (e) {
+            // If response isn't valid JSON
+            console.error('Login error response:', text);
+            throw new Error(`Login failed: ${response.status} ${text.substring(0, 100)}`);
+          }
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Login successful:', data);
+      // Store user info/token in app state or AsyncStorage in a real app
+      navigation.replace('Home');
+    })
+    .catch(error => {
+      console.error('Login error:', error);
+      Alert.alert('Error', error.message);
+    });
   };
 
   const handleSignup = () => {
@@ -46,7 +96,10 @@ const LoginScreen = ({ navigation }) => {
       firstName.trim() === '' ||
       lastName.trim() === '' ||
       age.trim() === '' ||
-      major.trim() === ''
+      major.trim() === '' ||
+      month.trim() === '' ||
+      day.trim() === '' ||
+      year.trim() === ''
     ) {
       Alert.alert('Error', 'Please fill out all fields.');
       return;
@@ -55,7 +108,76 @@ const LoginScreen = ({ navigation }) => {
       Alert.alert('Error', 'Passwords do not match.');
       return;
     }
-    navigation.replace('Home');
+
+    // Validate date format
+    const monthNum = parseInt(month);
+    const dayNum = parseInt(day);
+    const yearNum = parseInt(year);
+    
+    if (monthNum < 1 || monthNum > 12 || dayNum < 1 || dayNum > 31 || yearNum < 1900 || yearNum > new Date().getFullYear()) {
+      Alert.alert('Error', 'Please enter a valid date of birth.');
+      return;
+    }
+
+    // Format date of birth in ISO format (YYYY-MM-DD)
+    const formattedMonth = monthNum.toString().padStart(2, '0');
+    const formattedDay = dayNum.toString().padStart(2, '0');
+    const dateOfBirth = `${yearNum}-${formattedMonth}-${formattedDay}`;
+
+    // Call the backend API to register the user
+    const userData = {
+      username: username,
+      password: password,
+      email: email,
+      first_name: firstName,
+      last_name: lastName,
+      age: parseInt(age),
+      major: major,
+      date_of_birth: dateOfBirth
+    };
+
+    // Railway hosted backend URL - correct domain
+    fetch('https://backend-study-app-production.up.railway.app/users', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    })
+    .then(response => {
+      console.log(`Registration response status:`, response.status);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Backend service not found. Please check if the server is running.');
+        }
+        if (response.status === 500) {
+          throw new Error('Server error. Please try again later.');
+        }
+        
+        return response.text().then(text => {
+          try {
+            const data = JSON.parse(text);
+            throw new Error(data.detail || data.message || 'Registration failed');
+          } catch (e) {
+            // If response isn't valid JSON
+            console.error('Registration error response:', text);
+            throw new Error(`Registration failed: ${response.status} ${text.substring(0, 100)}`);
+          }
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      Alert.alert(
+        'Success',
+        'Account created successfully!',
+        [{ text: 'OK', onPress: () => navigation.replace('Home') }]
+      );
+    })
+    .catch(error => {
+      Alert.alert('Error', error.message);
+    });
   };
 
   return (
@@ -137,6 +259,37 @@ const LoginScreen = ({ navigation }) => {
                   keyboardType="email-address"
                   autoCapitalize="none"
                 />
+                <View style={styles.dateContainer}>
+                  <Text style={styles.dateLabel}>Date of Birth:</Text>
+                  <View style={styles.dateInputsContainer}>
+                    <TextInput
+                      style={[styles.dateInput, {flex: 2}]}
+                      placeholder="MM"
+                      value={month}
+                      onChangeText={setMonth}
+                      keyboardType="numeric"
+                      maxLength={2}
+                    />
+                    <Text style={styles.dateSeparator}>/</Text>
+                    <TextInput
+                      style={[styles.dateInput, {flex: 2}]}
+                      placeholder="DD"
+                      value={day}
+                      onChangeText={setDay}
+                      keyboardType="numeric"
+                      maxLength={2}
+                    />
+                    <Text style={styles.dateSeparator}>/</Text>
+                    <TextInput
+                      style={[styles.dateInput, {flex: 3}]}
+                      placeholder="YYYY"
+                      value={year}
+                      onChangeText={setYear}
+                      keyboardType="numeric"
+                      maxLength={4}
+                    />
+                  </View>
+                </View>
                 <TextInput
                   style={styles.input}
                   placeholder="Age"
@@ -285,5 +438,33 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  dateContainer: {
+    width: '100%',
+    maxWidth: 300,
+    marginBottom: 15,
+  },
+  dateLabel: {
+    fontSize: 14,
+    marginBottom: 5,
+    color: '#374151',
+  },
+  dateInputsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dateInput: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    paddingLeft: 10,
+    backgroundColor: '#fff',
+    textAlign: 'center',
+  },
+  dateSeparator: {
+    fontSize: 18,
+    marginHorizontal: 5,
   },
 });
