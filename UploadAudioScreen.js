@@ -1,41 +1,66 @@
-import React, { useState } from 'react';
-import {
-  View, Text, TouchableOpacity, ScrollView,
-  StyleSheet, ActivityIndicator, Alert, Modal, Platform
-} from 'react-native';
-import * as DocumentPicker from 'expo-document-picker';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Modal, Alert, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
+import { Audio } from 'expo-av';
 import Icon from 'react-native-vector-icons/Feather';
 
 const BACKEND_URL = 'https://backend-study-app-production.up.railway.app';
 
-export default function UploadAudioScreen() {
+export default function RecordAudioScreen() {
+  const [isRecording, setIsRecording] = useState(false);
   const [audioUri, setAudioUri] = useState(null);
   const [transcription, setTranscription] = useState('');
   const [summary, setSummary] = useState('');
   const [uploading, setUploading] = useState(false);
   const [summarizing, setSummarizing] = useState(false);
+  const [sound, setSound] = useState();
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
+
+  const startRecording = async () => {
+    try {
+      setTranscription('');
+      setSummary('');
+      const permission = await Audio.requestPermissionsAsync();
+      if (!permission.granted) throw new Error('Permission to access microphone is required');
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const { recording } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+      setIsRecording(recording);
+    } catch (err) {
+      console.error('Failed to start recording', err);
+      Alert.alert('Error', 'Failed to start recording.');
+    }
+  };
+
+  const stopRecording = async () => {
+    try {
+      await isRecording.stopAndUnloadAsync();
+      const uri = isRecording.getURI();
+      setAudioUri(uri);
+    } catch (err) {
+      console.error('Failed to stop recording', err);
+      Alert.alert('Error', 'Failed to stop recording.');
+    } finally {
+      setIsRecording(false);
+    }
+  };
+
+  const playRecording = async () => {
+    if (!audioUri) return;
+    const { sound } = await Audio.Sound.createAsync({ uri: audioUri });
+    setSound(sound);
+    await sound.playAsync();
+  };
 
   const handleCategorySelect = (category) => {
     setSelectedCategory(category);
     setShowCategoryModal(false);
-    pickAudioFile();  // Start file picker once category is selected
-  };
-
-  const pickAudioFile = async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({ type: 'audio/*' });
-      if (!result.canceled) {
-        setAudioUri(result.assets[0].uri);
-        setTranscription('');
-        setSummary('');
-      }
-    } catch (err) {
-      console.error('File selection failed', err);
-      Alert.alert('Error', 'Could not select audio file.');
-    }
+    startRecording();
   };
 
   const transcribeAudio = async () => {
@@ -45,11 +70,10 @@ export default function UploadAudioScreen() {
 
     try {
       let response;
-
       if (Platform.OS === 'web') {
         const blob = await (await fetch(audioUri)).blob();
         const formData = new FormData();
-        formData.append('file', new File([blob], 'upload.wav', { type: 'audio/wav' }));
+        formData.append('file', new File([blob], 'recording.wav', { type: 'audio/wav' }));
         response = await fetch(`${BACKEND_URL}/transcribe?stream=false`, {
           method: 'POST',
           body: formData,
@@ -59,7 +83,7 @@ export default function UploadAudioScreen() {
           fieldName: 'file',
           httpMethod: 'POST',
           uploadType: FileSystem.FileSystemUploadType.MULTIPART,
-          mimeType: 'audio/m4a', // adjust if needed
+          mimeType: 'audio/m4a',
         });
         response = {
           json: async () => JSON.parse(result.body),
@@ -67,6 +91,7 @@ export default function UploadAudioScreen() {
       }
 
       const data = await response.json();
+      console.log('📝 Transcribe response:', data);
       setTranscription(data.transcription || '');
     } catch (err) {
       console.error('Transcription failed', err);
@@ -84,7 +109,7 @@ export default function UploadAudioScreen() {
       const response = await fetch(`${BACKEND_URL}/summarize`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: transcription })
+        body: JSON.stringify({ text: transcription }),
       });
 
       const data = await response.json();
@@ -138,50 +163,90 @@ export default function UploadAudioScreen() {
       <View style={styles.content}>
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Upload Audio File</Text>
+            <Text style={styles.cardTitle}>Record Audio Note</Text>
             <Text style={styles.cardDescription}>Category: {selectedCategory || 'Not selected'}</Text>
           </View>
 
-          <TouchableOpacity style={styles.recordButton} onPress={() => setShowCategoryModal(true)}>
-            <Icon name="upload" size={24} color="white" />
-            <Text style={styles.buttonText}>Pick Audio File</Text>
-          </TouchableOpacity>
+          <View style={styles.recordingContainer}>
+            {isRecording ? (
+              <TouchableOpacity style={styles.stopButton} onPress={stopRecording}>
+                <Icon name="square" size={24} color="white" />
+                <Text style={styles.buttonText}>Stop Recording</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity style={styles.recordButton} onPress={() => setShowCategoryModal(true)}>
+                <Icon name="mic" size={24} color="white" />
+                <Text style={styles.buttonText}>Start Recording</Text>
+              </TouchableOpacity>
+            )}
 
-          {audioUri && (
-            <>
-              <TouchableOpacity style={styles.recordButton} onPress={transcribeAudio}>
-                <Icon name="file-text" size={24} color="white" />
-                <Text style={styles.buttonText}>Transcribe</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.stopButton, { backgroundColor: summarizing || !transcription ? '#999' : '#e53e3e' }]}
-                disabled={!transcription || summarizing}
-                onPress={summarizeText}
-              >
-                <Icon name="book-open" size={24} color="white" />
-                <Text style={styles.buttonText}>Summarize</Text>
-              </TouchableOpacity>
-            </>
-          )}
+            {audioUri && !isRecording && (
+              <>
+                <TouchableOpacity style={styles.replayButton} onPress={playRecording}>
+                  <Icon name="play" size={24} color="white" />
+                  <Text style={styles.buttonText}>Replay Audio</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.recordButton} onPress={transcribeAudio}>
+                  <Icon name="upload" size={24} color="white" />
+                  <Text style={styles.buttonText}>Transcribe</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.stopButton, { backgroundColor: summarizing || !transcription ? '#999' : '#e53e3e' }]}
+                  disabled={!transcription || summarizing}
+                  onPress={summarizeText}
+                >
+                  <Icon name="book-open" size={24} color="white" />
+                  <Text style={styles.buttonText}>Summarize</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
 
           {uploading && <ActivityIndicator size="large" color="#2196F3" style={{ marginVertical: 10 }} />}
+          {transcription !== '' && (
+            <ScrollView
+            style={{ padding: 16 }}
+            contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}
+  >         
+            <Text style={styles.modalTitle}>Transcription:</Text>
+            <Text>{transcription}</Text>
+          </ScrollView>
+          )}
 
           {transcription !== '' && (
-            <ScrollView style={{ padding: 16 }} contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}>
-              <Text style={styles.modalTitle}>Transcription:</Text>
-              <Text>{transcription}</Text>
-            </ScrollView>
+            <TouchableOpacity
+              style={[styles.recordButton, { backgroundColor: "#1f2937" }]}
+              onPress={saveTranscriptNote}
+            >
+              <Icon name="save" size={24} color="white" />
+              <Text style={styles.buttonText}>Save Transcript</Text>
+            </TouchableOpacity>
           )}
 
           {summary !== '' && (
-            <ScrollView style={{ padding: 16 }} contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}>
-              <Text style={styles.modalTitle}>Summary:</Text>
-              <Text>{summary}</Text>
-            </ScrollView>
+            <ScrollView 
+            style={{ padding: 16 }} 
+            contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}  // Or center, stretch, etc.
+          >
+            <Text style={styles.modalTitle}>Summary:</Text>
+            <Text>{summary}</Text>
+          </ScrollView>
+  
           )}
 
+          {summary !== '' && (
+            <TouchableOpacity
+              style={[styles.stopButton, { backgroundColor: "#e53e3e" }]}
+              onPress={saveSummaryNote}
+            >
+              <Icon name="save" size={24} color="white" />
+              <Text style={styles.buttonText}>Save Summary</Text>
+            </TouchableOpacity>
+          )}
+
+
           <Text style={styles.statusText}>
-            {audioUri ? "Audio selected. Ready to transcribe." : "No audio file selected."}
+            {isRecording ? "Recording in progress..." : audioUri ? "Recording saved. Ready to replay." : "Ready to record"}
           </Text>
         </View>
       </View>
@@ -209,13 +274,15 @@ const styles = StyleSheet.create({
   cardHeader: { alignItems: "center", marginBottom: 24 },
   cardTitle: { fontSize: 20, fontWeight: "bold", color: "#e53e3e", marginBottom: 8 },
   cardDescription: { fontSize: 14, color: "#6b7280", textAlign: "center" },
+  recordingContainer: { alignItems: "center", marginBottom: 24 },
   recordButton: { backgroundColor: "black", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, marginBottom: 10 },
   stopButton: { backgroundColor: "#e53e3e", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, marginBottom: 10 },
+  replayButton: { backgroundColor: "#000000", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8 },
   buttonText: { color: "white", fontWeight: "bold", marginLeft: 8 },
   statusText: { textAlign: "center", color: "#6b7280", fontSize: 14 },
-  modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 16, textAlign: "center" },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
   modalContent: { backgroundColor: "white", borderRadius: 10, padding: 24, width: "80%", alignItems: "center", marginBottom: 16 },
+  modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 16, textAlign: "center" },
   sectionButton: { backgroundColor: "#1f2937", paddingVertical: 10, paddingHorizontal: 24, borderRadius: 8, marginVertical: 6, width: "100%", alignItems: "center" },
   sectionButtonText: { color: "white", fontWeight: "bold" },
 });
