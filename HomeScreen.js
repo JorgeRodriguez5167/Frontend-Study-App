@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, FlatList, Modal, TextInput, ActivityIndicator, Alert } from "react-native"
 import { useNavigation } from "@react-navigation/native"
 import Icon from "react-native-vector-icons/Feather"
@@ -34,10 +34,39 @@ export default function HomeScreen({route}) {
   const [studyGuide, setStudyGuide] = useState("")
   const [loading, setLoading] = useState(false)
   const [studyGuideResult, setStudyGuideResult] = useState({ visible: false, content: "", category: "" })
+  const [username, setUsername] = useState("")
   const navigation = useNavigation()
   
   // Extract user data from navigation route params
   const userData = route?.params?.userData || { userId: 1 }; // Default to userId: 1 if not provided
+
+  // Fetch user data to get the username
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  const fetchUserData = async () => {
+    if (!userData.userId && !userData.user_id) {
+      return;
+    }
+
+    try {
+      const userId = userData.userId || userData.user_id;
+      const response = await fetch(`https://backend-study-app-production.up.railway.app/users/${userId}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch user data');
+      }
+      
+      const data = await response.json();
+      
+      // Set username - prioritize username, then first name, or default to "User"
+      setUsername(data.username || data.first_name || "User");
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      setUsername("User"); // Default fallback
+    }
+  };
 
   const renderNoteItem = ({ item }) => (
     <View style={styles.noteCard}>
@@ -97,14 +126,14 @@ export default function HomeScreen({route}) {
           <Text style={styles.headerTitle}>Study Assistant</Text>
           
         </View>
-        <TouchableOpacity style={styles.accountButton} onPress={() => navigation.navigate("AccountSettings")}>
+        <TouchableOpacity style={styles.accountButton} onPress={() => navigation.navigate("AccountSettings", { userData })}>
           <Icon name="settings" size={20} color="white" />
           <Text style={styles.accountButtonText}>Account</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.contentContainer}>
-        <Text style={styles.title}>Welcome back, (user)</Text>
+        <Text style={styles.title}>Welcome back, {username}</Text>
 
         <View style={styles.content}>
           {/* Actions Section */}
