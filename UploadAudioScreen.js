@@ -97,6 +97,42 @@ export default function UploadAudioScreen() {
     }
   };
 
+  const saveTranscriptNote = async () => {
+    try {
+      await fetch(`${BACKEND_URL}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: "Transcript Note",
+          content: transcription,
+          category: selectedCategory,
+          user_id: 2
+        })
+      });
+      Alert.alert("Success", "Transcript saved.");
+    } catch (err) {
+      Alert.alert("Error", "Failed to save transcript.");
+    }
+  };
+  
+  const saveSummaryNote = async () => {
+    try {
+      await fetch(`${BACKEND_URL}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: "Summary Note",
+          content: summary,
+          category: selectedCategory,
+          user_id: 2
+        })
+      });
+      Alert.alert("Success", "Summary saved.");
+    } catch (err) {
+      Alert.alert("Error", "Failed to save summary.");
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.content}>
