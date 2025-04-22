@@ -173,6 +173,20 @@ export default function UploadAudioScreen() {
             </ScrollView>
           )}
 
+          {transcription !== '' && (
+            <>
+              <ScrollView style={{ padding: 16 }} contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}>
+                <Text style={styles.modalTitle}>Transcription:</Text>
+                <Text>{transcription}</Text>
+              </ScrollView>
+              <TouchableOpacity style={styles.recordButton} onPress={() => saveNote('Transcription', transcription)}>
+                <Icon name="save" size={20} color="white" />
+                <Text style={styles.buttonText}>Save Transcript</Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+
           {summary !== '' && (
             <ScrollView style={{ padding: 16 }} contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}>
               <Text style={styles.modalTitle}>Summary:</Text>
@@ -180,6 +194,22 @@ export default function UploadAudioScreen() {
             </ScrollView>
           )}
 
+
+          {summary !== '' && (
+            <>
+              <ScrollView style={{ padding: 16 }} contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}>
+                <Text style={styles.modalTitle}>Summary:</Text>
+                <Text>{summary}</Text>
+              </ScrollView>
+              <TouchableOpacity style={styles.recordButton} onPress={() => saveNote('Summary', summary)}>
+                <Icon name="save" size={20} color="white" />
+                <Text style={styles.buttonText}>Save Summary</Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+
+            
           <Text style={styles.statusText}>
             {audioUri ? "Audio selected. Ready to transcribe." : "No audio file selected."}
           </Text>
