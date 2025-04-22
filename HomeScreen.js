@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, FlatList, Modal, TextInput, ActivityIndicator, Alert } from "react-native"
 import { useNavigation } from "@react-navigation/native"
 import Icon from "react-native-vector-icons/Feather"
-import AppLogo from './assets/AppLogo.png'
+
 
 export default function HomeScreen({route}) {
   const [activeCategory, setActiveCategory] = useState("Health")
@@ -181,17 +181,16 @@ export default function HomeScreen({route}) {
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      
-<View style={styles.header}>
-  <View>
-    <Text style={styles.headerTitle}>Study Assistant</Text>
-  </View>
-  <TouchableOpacity style={styles.accountButton} onPress={() => navigation.navigate("AccountSettings", { userData })}>
-    <Icon name="settings" size={20} color="white" />
-    <Text style={styles.accountButtonText}>Account</Text>
-  </TouchableOpacity>
-</View>
-
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.headerTitle}>Study Assistant</Text>
+          
+        </View>
+        <TouchableOpacity style={styles.accountButton} onPress={() => navigation.navigate("AccountSettings", { userData })}>
+          <Icon name="settings" size={20} color="white" />
+          <Text style={styles.accountButtonText}>Account</Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.contentContainer}>
         <Text style={styles.title}>Welcome back, {username}</Text>
