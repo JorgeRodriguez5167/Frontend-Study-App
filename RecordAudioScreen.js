@@ -74,12 +74,12 @@ export default function RecordAudioScreen() {
         const blob = await (await fetch(audioUri)).blob();
         const formData = new FormData();
         formData.append('file', new File([blob], 'recording.wav', { type: 'audio/wav' }));
-        response = await fetch(`${BACKEND_URL}/transcribe?stream=false`, {
+        response = await fetch(${BACKEND_URL}/transcribe?stream=false, {
           method: 'POST',
           body: formData,
         });
       } else {
-        const result = await FileSystem.uploadAsync(`${BACKEND_URL}/transcribe?stream=false`, audioUri, {
+        const result = await FileSystem.uploadAsync(${BACKEND_URL}/transcribe?stream=false, audioUri, {
           fieldName: 'file',
           httpMethod: 'POST',
           uploadType: FileSystem.FileSystemUploadType.MULTIPART,
@@ -106,7 +106,7 @@ export default function RecordAudioScreen() {
     setSummarizing(true);
 
     try {
-      const response = await fetch(`${BACKEND_URL}/summarize`, {
+      const response = await fetch(${BACKEND_URL}/summarize, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: transcription }),
@@ -124,7 +124,7 @@ export default function RecordAudioScreen() {
 
   const saveTranscriptNote = async () => {
     try {
-      await fetch(`${BACKEND_URL}/notes`, {
+      await fetch(${BACKEND_URL}/notes, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -142,7 +142,7 @@ export default function RecordAudioScreen() {
   
   const saveSummaryNote = async () => {
     try {
-      await fetch(`${BACKEND_URL}/notes`, {
+      await fetch(${BACKEND_URL}/notes, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -203,10 +203,17 @@ export default function RecordAudioScreen() {
           </View>
 
           {uploading && <ActivityIndicator size="large" color="#2196F3" style={{ marginVertical: 10 }} />}
-
-         
-
-
+{/*
+         {transcription !== '' && (
+            <ScrollView
+            style={{ padding: 16 }}
+            contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}
+  >         
+            <Text style={styles.modalTitle}>Transcription:</Text>
+            <Text>{transcription}</Text>
+          </ScrollView>
+          )} 
+*/}
           {transcription !== '' && (
             <TouchableOpacity
               style={[styles.recordButton, { backgroundColor: "#1f2937" }]}
@@ -216,9 +223,18 @@ export default function RecordAudioScreen() {
               <Text style={styles.buttonText}>Save Transcript</Text>
             </TouchableOpacity>
           )}
-
-          
-
+{/*
+          {summary !== '' && (
+            <ScrollView 
+            style={{ padding: 16 }} 
+            contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}  // Or center, stretch, etc.
+          >
+            <Text style={styles.modalTitle}>Summary:</Text>
+            <Text>{summary}</Text>
+          </ScrollView>
+  
+          )}
+*/}
           {summary !== '' && (
             <TouchableOpacity
               style={[styles.stopButton, { backgroundColor: "#e53e3e" }]}
