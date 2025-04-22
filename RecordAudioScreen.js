@@ -214,19 +214,73 @@ export default function RecordAudioScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f3f4f6" },
   content: { flex: 1, padding: 16, justifyContent: "center" },
-  card: { backgroundColor: "white", borderRadius: 8, padding: 16, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
+  card: { 
+    backgroundColor: "white", 
+    borderRadius: 8, 
+    padding: 16, 
+    shadowColor: "#000", 
+    shadowOffset: { width: 0, height: 2 }, 
+    shadowOpacity: 0.1, 
+    shadowRadius: 4, 
+    elevation: 2 
+  },
   cardHeader: { alignItems: "center", marginBottom: 24 },
   cardTitle: { fontSize: 20, fontWeight: "bold", color: "#e53e3e", marginBottom: 8 },
   cardDescription: { fontSize: 14, color: "#6b7280", textAlign: "center" },
   recordingContainer: { alignItems: "center", marginBottom: 24 },
-  recordButton: { backgroundColor: "black", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, marginBottom: 10 },
-  stopButton: { backgroundColor: "#e53e3e", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, marginBottom: 10 },
-  replayButton: { backgroundColor: "#000000", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8 },
+  recordButton: { 
+    backgroundColor: "black", 
+    flexDirection: "row", 
+    alignItems: "center", 
+    justifyContent: "center", 
+    paddingVertical: 12, 
+    paddingHorizontal: 20, 
+    borderRadius: 8, 
+    marginBottom: 10 
+  },
+  stopButton: { 
+    backgroundColor: "#e53e3e", 
+    flexDirection: "row", 
+    alignItems: "center", 
+    justifyContent: "center", 
+    paddingVertical: 12, 
+    paddingHorizontal: 20, 
+    borderRadius: 8, 
+    marginBottom: 10 
+  },
+  replayButton: { 
+    backgroundColor: "#000000", 
+    flexDirection: "row", 
+    alignItems: "center", 
+    justifyContent: "center", 
+    paddingVertical: 12, 
+    paddingHorizontal: 20, 
+    borderRadius: 8 
+  },
+  /* 🔥 Added spacing between "Record Audio" and "Transcribe" buttons */
+  buttonSpacing: {
+    marginTop: 16,
+  },
   buttonText: { color: "white", fontWeight: "bold", marginLeft: 8 },
   statusText: { textAlign: "center", color: "#6b7280", fontSize: 14 },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
-  modalContent: { backgroundColor: "white", borderRadius: 10, padding: 24, width: "80%", alignItems: "center", marginBottom: 16 },
+  modalContent: { 
+    backgroundColor: "white", 
+    borderRadius: 10, 
+    padding: 24, 
+    width: "80%", 
+    alignItems: "center", 
+    marginBottom: 16 
+  },
   modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 16, textAlign: "center" },
-  sectionButton: { backgroundColor: "#1f2937", paddingVertical: 10, paddingHorizontal: 24, borderRadius: 8, marginVertical: 6, width: "100%", alignItems: "center" },
+  sectionButton: { 
+    backgroundColor: "#1f2937", 
+    paddingVertical: 10, 
+    paddingHorizontal: 24, 
+    borderRadius: 8, 
+    marginVertical: 6, 
+    width: "100%", 
+    alignItems: "center" 
+  },
   sectionButtonText: { color: "white", fontWeight: "bold" },
 });
