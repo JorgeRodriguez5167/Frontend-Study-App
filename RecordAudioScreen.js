@@ -91,7 +91,7 @@ export default function RecordAudioScreen() {
       }
 
       const data = await response.json();
-      console.log('📝 Transcribe response:', data);
+      console.log('Transcribe response:', data);
       setTranscription(data.transcription || '');
     } catch (err) {
       console.error('Transcription failed', err);
@@ -142,10 +142,10 @@ export default function RecordAudioScreen() {
 
     const data = await response.json();
     if (response.ok) {
-      Alert.alert("✅ Success", `${type} note saved.`);
-      console.log(`📝 Saved ${type} note`, data);
+      Alert.alert("Success", `${type} note saved.`);
+      console.log(`Saved ${type} note`, data);
     } else {
-      Alert.alert("❌ Failed", `Could not save ${type} note.`);
+      Alert.alert("Failed", `Could not save ${type} note.`);
       console.error(`Save ${type} failed`, data);
     }
   } catch (err) {
@@ -153,23 +153,7 @@ export default function RecordAudioScreen() {
     Alert.alert("Error", "Something went wrong.");
   }
 };
-
-
-      const data = await response.json();
-      if (response.ok) {
-        Alert.alert("✅ Success", `${type} note saved.`);
-        console.log(`📝 Saved ${type} note`, data);
-      } else {
-        Alert.alert("❌ Failed", `Could not save ${type} note.`);
-        console.error(`Save ${type} failed`, data);
-      }
-    } catch (err) {
-      console.error('Note save failed:', err);
-      Alert.alert("Error", "Something went wrong.");
-    }
-  });
-};
-
+  
   return (
     <View style={styles.container}>
       <View style={styles.content}>
