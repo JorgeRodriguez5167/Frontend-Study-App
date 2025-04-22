@@ -203,7 +203,7 @@ export default function RecordAudioScreen() {
           </View>
 
           {uploading && <ActivityIndicator size="large" color="#2196F3" style={{ marginVertical: 10 }} />}
-{/*
+
          {transcription !== '' && (
             <ScrollView
             style={{ padding: 16 }}
@@ -213,7 +213,7 @@ export default function RecordAudioScreen() {
             <Text>{transcription}</Text>
           </ScrollView>
           )} 
-*/}
+
           {transcription !== '' && (
             <TouchableOpacity
               style={[styles.recordButton, { backgroundColor: "#1f2937" }]}
@@ -223,7 +223,7 @@ export default function RecordAudioScreen() {
               <Text style={styles.buttonText}>Save Transcript</Text>
             </TouchableOpacity>
           )}
-{/*
+
           {summary !== '' && (
             <ScrollView 
             style={{ padding: 16 }} 
@@ -234,7 +234,7 @@ export default function RecordAudioScreen() {
           </ScrollView>
   
           )}
-*/}
+
           {summary !== '' && (
             <TouchableOpacity
               style={[styles.stopButton, { backgroundColor: "#e53e3e" }]}
