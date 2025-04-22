@@ -122,6 +122,42 @@ export default function RecordAudioScreen() {
     }
   };
 
+  const saveTranscriptNote = async () => {
+    try {
+      await fetch(`${BACKEND_URL}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: "Transcript Note",
+          content: transcription,
+          category: selectedCategory,
+          user_id: 2
+        })
+      });
+      Alert.alert("Success", "Transcript saved.");
+    } catch (err) {
+      Alert.alert("Error", "Failed to save transcript.");
+    }
+  };
+  
+  const saveSummaryNote = async () => {
+    try {
+      await fetch(`${BACKEND_URL}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: "Summary Note",
+          content: summary,
+          category: selectedCategory,
+          user_id: 2
+        })
+      });
+      Alert.alert("Success", "Summary saved.");
+    } catch (err) {
+      Alert.alert("Error", "Failed to save summary.");
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.content}>
@@ -146,18 +182,14 @@ export default function RecordAudioScreen() {
 
             {audioUri && !isRecording && (
               <>
-                <View style={{ marginBottom: 10 }}>
-                  <TouchableOpacity style={styles.replayButton} onPress={playRecording}>
-                    <Icon name="play" size={24} color="white" />
-                    <Text style={styles.buttonText}>Replay Audio</Text>
-                  </TouchableOpacity>
-                </View>
-
+                <TouchableOpacity style={styles.replayButton} onPress={playRecording}>
+                  <Icon name="play" size={24} color="white" />
+                  <Text style={styles.buttonText}>Replay Audio</Text>
+                </TouchableOpacity>
                 <TouchableOpacity style={styles.recordButton} onPress={transcribeAudio}>
                   <Icon name="upload" size={24} color="white" />
                   <Text style={styles.buttonText}>Transcribe</Text>
                 </TouchableOpacity>
-
                 <TouchableOpacity
                   style={[styles.stopButton, { backgroundColor: summarizing || !transcription ? '#999' : '#e53e3e' }]}
                   disabled={!transcription || summarizing}
@@ -172,18 +204,46 @@ export default function RecordAudioScreen() {
 
           {uploading && <ActivityIndicator size="large" color="#2196F3" style={{ marginVertical: 10 }} />}
           {transcription !== '' && (
-            <ScrollView style={{ padding: 16 }} contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}>
-              <Text style={styles.modalTitle}>Transcription:</Text>
-              <Text>{transcription}</Text>
-            </ScrollView>
+            <ScrollView
+            style={{ padding: 16 }}
+            contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}
+  >         
+            <Text style={styles.modalTitle}>Transcription:</Text>
+            <Text>{transcription}</Text>
+          </ScrollView>
+          )}
+
+          {transcription !== '' && (
+            <TouchableOpacity
+              style={[styles.recordButton, { backgroundColor: "#1f2937" }]}
+              onPress={saveTranscriptNote}
+            >
+              <Icon name="save" size={24} color="white" />
+              <Text style={styles.buttonText}>Save Transcript</Text>
+            </TouchableOpacity>
           )}
 
           {summary !== '' && (
-            <ScrollView style={{ padding: 16 }} contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}>
-              <Text style={styles.modalTitle}>Summary:</Text>
-              <Text>{summary}</Text>
-            </ScrollView>
+            <ScrollView 
+            style={{ padding: 16 }} 
+            contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}  // Or center, stretch, etc.
+          >
+            <Text style={styles.modalTitle}>Summary:</Text>
+            <Text>{summary}</Text>
+          </ScrollView>
+  
           )}
+
+          {summary !== '' && (
+            <TouchableOpacity
+              style={[styles.stopButton, { backgroundColor: "#e53e3e" }]}
+              onPress={saveSummaryNote}
+            >
+              <Icon name="save" size={24} color="white" />
+              <Text style={styles.buttonText}>Save Summary</Text>
+            </TouchableOpacity>
+          )}
+
 
           <Text style={styles.statusText}>
             {isRecording ? "Recording in progress..." : audioUri ? "Recording saved. Ready to replay." : "Ready to record"}
