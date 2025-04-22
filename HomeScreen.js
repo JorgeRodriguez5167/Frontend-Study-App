@@ -27,7 +27,7 @@ const mockNotes = {
   ],
 }
 
-export default function HomeScreen() {
+export default function HomeScreen({route}) {
   const [activeCategory, setActiveCategory] = useState("misc")
   const [studyGuideModalVisible, setStudyGuideModalVisible] = useState(false)
   const [categoryInput, setCategoryInput] = useState("")
@@ -35,6 +35,9 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(false)
   const [studyGuideResult, setStudyGuideResult] = useState({ visible: false, content: "", category: "" })
   const navigation = useNavigation()
+  
+  // Extract user data from navigation route params
+  const userData = route?.params?.userData || { userId: 1 }; // Default to userId: 1 if not provided
 
   const renderNoteItem = ({ item }) => (
     <View style={styles.noteCard}>
@@ -56,7 +59,10 @@ export default function HomeScreen() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ category: categoryInput.trim() }),
+        body: JSON.stringify({ 
+          category: categoryInput.trim(),
+          user_id: userData.userId || userData.user_id || 1
+        }),
       });
 
       if (!response.ok) {
