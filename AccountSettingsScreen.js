@@ -1,17 +1,157 @@
-import { useState } from "react"
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, TextInput, Alert } from "react-native"
+import { useState, useEffect } from "react"
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, TextInput, Alert, ActivityIndicator } from "react-native"
 import Icon from "react-native-vector-icons/Feather"
-import { useNavigation } from "@react-navigation/native"
+import { useNavigation, useRoute } from "@react-navigation/native"
 
-export default function AccountSettingsScreen() {
+export default function AccountSettingsScreen({ route }) {
   const navigation = useNavigation()
   const [activeTab, setActiveTab] = useState("profile")
+  const [loading, setLoading] = useState(false)
 
+  // Get user data from navigation params
+  const userData = route?.params?.userData || {};
+  
   // Profile state
-  const [firstName, setFirstName] = useState("John")
-  const [lastName, setLastName] = useState("Doe")
-  const [displayName, setDisplayName] = useState("JohnD")
-  const [email, setEmail] = useState("john.doe@example.com")
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
+  const [displayName, setDisplayName] = useState("")
+  const [email, setEmail] = useState("")
+
+  // Security state
+  const [currentPassword, setCurrentPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [securityLoading, setSecurityLoading] = useState(false)
+  const [passwordError, setPasswordError] = useState("")
+
+  // Load user data
+  useEffect(() => {
+    if (userData && userData.userId) {
+      fetchUserData(userData.userId);
+    }
+  }, [userData]);
+
+  const fetchUserData = async (userId) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`https://backend-study-app-production.up.railway.app/users/${userId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch user data');
+      }
+      const data = await response.json();
+      setFirstName(data.first_name || "");
+      setLastName(data.last_name || "");
+      setDisplayName(data.username || "");
+      setEmail(data.email || "");
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      Alert.alert('Error', 'Failed to load user data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!userData || !userData.userId) {
+      Alert.alert('Error', 'User ID not found');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await fetch(`https://backend-study-app-production.up.railway.app/users/${userData.userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          first_name: firstName,
+          last_name: lastName,
+          email: email,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to update profile');
+      }
+
+      Alert.alert('Success', 'Profile updated successfully');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      Alert.alert('Error', error.message || 'Failed to update profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const validatePassword = () => {
+    setPasswordError("");
+    
+    if (!currentPassword) {
+      setPasswordError("Current password is required");
+      return false;
+    }
+    
+    if (!newPassword) {
+      setPasswordError("New password is required");
+      return false;
+    }
+    
+    if (newPassword.length < 8) {
+      setPasswordError("Password must be at least 8 characters long");
+      return false;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      setPasswordError("Passwords do not match");
+      return false;
+    }
+    
+    return true;
+  };
+
+  const handleSavePassword = async () => {
+    if (!userData || !userData.userId) {
+      Alert.alert('Error', 'User ID not found');
+      return;
+    }
+
+    if (!validatePassword()) {
+      return;
+    }
+
+    try {
+      setSecurityLoading(true);
+      const response = await fetch(`https://backend-study-app-production.up.railway.app/users/${userData.userId}/password`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to update password');
+      }
+
+      // Clear password fields
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      
+      Alert.alert('Success', 'Password updated successfully');
+    } catch (error) {
+      console.error('Error updating password:', error);
+      setPasswordError(error.message || 'Failed to update password');
+    } finally {
+      setSecurityLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -42,69 +182,130 @@ export default function AccountSettingsScreen() {
       case "profile":
         return (
           <View style={styles.tabContent}>
-            <View style={styles.formRow}>
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>First Name</Text>
-                <TextInput style={styles.input} value={firstName} onChangeText={setFirstName} />
-              </View>
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>Last Name</Text>
-                <TextInput style={styles.input} value={lastName} onChangeText={setLastName} />
-              </View>
-            </View>
+            {loading ? (
+              <ActivityIndicator size="large" color="#e53e3e" style={styles.loader} />
+            ) : (
+              <>
+                <View style={styles.formRow}>
+                  <View style={styles.formGroup}>
+                    <Text style={styles.label}>First Name</Text>
+                    <TextInput 
+                      style={styles.input} 
+                      value={firstName} 
+                      onChangeText={setFirstName}
+                      placeholder="Enter first name" 
+                    />
+                  </View>
+                  <View style={styles.formGroup}>
+                    <Text style={styles.label}>Last Name</Text>
+                    <TextInput 
+                      style={styles.input} 
+                      value={lastName} 
+                      onChangeText={setLastName}
+                      placeholder="Enter last name" 
+                    />
+                  </View>
+                </View>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Username</Text>
-              <TextInput 
-                style={[styles.input, styles.readOnlyInput]} 
-                value={displayName} 
-                editable={false} 
-              />
-              <Text style={styles.hint}>Your unique identifier in the app.</Text>
-            </View>
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Username</Text>
+                  <TextInput 
+                    style={[styles.input, styles.readOnlyInput]} 
+                    value={displayName} 
+                    editable={false} 
+                  />
+                  <Text style={styles.hint}>Your unique identifier in the app.</Text>
+                </View>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Email</Text>
-              <TextInput
-                style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </View>
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Email</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder="Enter email address"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </View>
 
-            <TouchableOpacity style={styles.saveButton}>
-              <Icon name="save" size={20} color="white" />
-              <Text style={styles.saveButtonText}>Save Profile</Text>
-            </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.saveButton}
+                  onPress={handleSaveProfile}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : (
+                    <>
+                      <Icon name="save" size={20} color="white" />
+                      <Text style={styles.saveButtonText}>Save Profile</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         )
 
       case "security":
         return (
           <View style={styles.tabContent}>
+            {passwordError ? (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{passwordError}</Text>
+              </View>
+            ) : null}
+            
             <View style={styles.formGroup}>
               <Text style={styles.label}>Current Password</Text>
-              <TextInput style={styles.input} secureTextEntry placeholder="Enter current password" />
+              <TextInput 
+                style={styles.input} 
+                secureTextEntry 
+                placeholder="Enter current password" 
+                value={currentPassword}
+                onChangeText={setCurrentPassword}
+              />
             </View>
 
             <View style={styles.formGroup}>
               <Text style={styles.label}>New Password</Text>
-              <TextInput style={styles.input} secureTextEntry placeholder="Enter new password" />
+              <TextInput 
+                style={styles.input} 
+                secureTextEntry 
+                placeholder="Enter new password" 
+                value={newPassword}
+                onChangeText={setNewPassword}
+              />
             </View>
 
             <View style={styles.formGroup}>
               <Text style={styles.label}>Confirm New Password</Text>
-              <TextInput style={styles.input} secureTextEntry placeholder="Confirm new password" />
+              <TextInput 
+                style={styles.input} 
+                secureTextEntry 
+                placeholder="Confirm new password" 
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+              />
               <Text style={styles.hint}>
-                Password must be at least 8 characters and include a number and a special character.
+                Password must be at least 8 characters long.
               </Text>
             </View>
 
-            <TouchableOpacity style={styles.saveButton}>
-              <Icon name="save" size={20} color="white" />
-              <Text style={styles.saveButtonText}>Save Security Settings</Text>
+            <TouchableOpacity 
+              style={styles.saveButton}
+              onPress={handleSavePassword}
+              disabled={securityLoading}
+            >
+              {securityLoading ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <>
+                  <Icon name="save" size={20} color="white" />
+                  <Text style={styles.saveButtonText}>Save Security Settings</Text>
+                </>
+              )}
             </TouchableOpacity>
           </View>
         )
@@ -295,5 +496,20 @@ const styles = StyleSheet.create({
   readOnlyInput: {
     backgroundColor: '#f3f4f6',
     color: '#6b7280',
+  },
+  loader: {
+    marginTop: 16,
+  },
+  errorContainer: {
+    backgroundColor: '#fee2e2',
+    borderRadius: 6,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#f87171',
+  },
+  errorText: {
+    color: '#b91c1c',
+    fontSize: 14,
   },
 })

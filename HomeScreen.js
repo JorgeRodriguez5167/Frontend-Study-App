@@ -1,42 +1,182 @@
-import { useState } from "react"
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, FlatList } from "react-native"
+import { useState, useEffect } from "react"
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, FlatList, Modal, TextInput, ActivityIndicator, Alert } from "react-native"
 import { useNavigation } from "@react-navigation/native"
 import Icon from "react-native-vector-icons/Feather"
 
-// Mock notes data
-const mockNotes = {
-  work: [
-    { id: "1", title: "Meeting notes", content: "Discuss project timeline with team members..." },
-    { id: "2", title: "Task list", content: "Complete report by Friday, review documentation..." },
-  ],
-  personal: [
-    { id: "3", title: "Shopping list", content: "Milk, eggs, bread, vegetables, fruits..." },
-    { id: "4", title: "Birthday reminder", content: "Mom's birthday next week, buy a gift..." },
-  ],
-  study: [
-    { id: "5", title: "Math formulas", content: "Quadratic equation: ax² + bx + c = 0..." },
-    { id: "6", title: "History dates", content: "World War II: 1939-1945, French Revolution: 1789..." },
-  ],
-  ideas: [
-    { id: "7", title: "App idea", content: "Create a meal planning app with recipe suggestions..." },
-    { id: "8", title: "Blog post", content: "Write about productivity tips for remote work..." },
-  ],
-  misc: [
-    { id: "9", title: "Sample Note", content: "This is a preview of the note content..." },
-    { id: "10", title: "Another Note", content: "Here's another note preview..." },
-  ],
-}
 
-export default function HomeScreen() {
-  const [activeCategory, setActiveCategory] = useState("misc")
+export default function HomeScreen({route}) {
+  const [activeCategory, setActiveCategory] = useState("Health")
+  const [studyGuideModalVisible, setStudyGuideModalVisible] = useState(false)
+  const [categoryInput, setCategoryInput] = useState("")
+  const [studyGuide, setStudyGuide] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [studyGuideResult, setStudyGuideResult] = useState({ visible: false, content: "", category: "" })
+  const [username, setUsername] = useState("")
+  const [userNotes, setUserNotes] = useState({})
+  const [selectedNote, setSelectedNote] = useState(null)
+  const [noteModalVisible, setNoteModalVisible] = useState(false)
+  const [notesLoading, setNotesLoading] = useState(false)
   const navigation = useNavigation()
+  
+  // Extract user data from navigation route params
+  const userData = route?.params?.userData || { userId: 1 }; // Default to userId: 1 if not provided
+  const refreshTrigger = route?.params?.refresh;
+
+  // Fetch user data to get the username
+  useEffect(() => {
+    fetchUserData();
+    fetchUserNotes();
+  }, []);
+
+  // Additional effect to handle refresh trigger
+  useEffect(() => {
+    if (refreshTrigger) {
+      fetchUserNotes();
+    }
+  }, [refreshTrigger]);
+
+  const fetchUserData = async () => {
+    if (!userData.userId && !userData.user_id) {
+      return;
+    }
+
+    try {
+      const userId = userData.userId || userData.user_id;
+      const response = await fetch(`https://backend-study-app-production.up.railway.app/users/${userId}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch user data');
+      }
+      
+      const data = await response.json();
+      
+      // Set username - prioritize username, then first name, or default to "User"
+      setUsername(data.username || data.first_name || "User");
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      setUsername("User"); // Default fallback
+    }
+  };
+
+  const fetchUserNotes = async () => {
+    if (!userData.userId && !userData.user_id) {
+      return;
+    }
+
+    try {
+      setNotesLoading(true);
+      const userId = userData.userId || userData.user_id;
+      const response = await fetch(`https://backend-study-app-production.up.railway.app/users/${userId}/notes`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch user notes');
+      }
+      
+      const data = await response.json();
+      
+      // Organize notes by category
+      const notesByCategory = {};
+      const validCategories = ["Health", "Biology", "Arts", "English", "History"];
+      
+      // Initialize categories
+      validCategories.forEach(category => {
+        notesByCategory[category] = [];
+      });
+      
+      // Sort notes into categories
+      data.forEach(note => {
+        const category = note.category;
+        if (validCategories.includes(category)) {
+          notesByCategory[category].push({
+            id: note.id.toString(),
+            title: note.title || "Untitled Note",
+            content: getFirstSentence(note.summarized_notes),
+            fullContent: note.summarized_notes,
+            transcription: note.transcription,
+            category: category
+          });
+        }
+      });
+      
+      setUserNotes(notesByCategory);
+    } catch (error) {
+      console.error('Error fetching user notes:', error);
+    } finally {
+      setNotesLoading(false);
+    }
+  };
+
+  // Helper function to get first sentence of text
+  const getFirstSentence = (text) => {
+    if (!text) return "";
+    
+    // Find the first sentence ending (period, exclamation, question mark)
+    const match = text.match(/^.*?[.!?](?:\s|$)/);
+    if (match) {
+      return match[0] + "...";
+    }
+    
+    // If no sentence ending found, return first 50 characters
+    return text.length > 50 ? text.substring(0, 50) + "..." : text;
+  };
+
+  const handleViewFullNote = (note) => {
+    setSelectedNote(note);
+    setNoteModalVisible(true);
+  };
 
   const renderNoteItem = ({ item }) => (
-    <View style={styles.noteCard}>
+    <TouchableOpacity 
+      style={styles.noteCard}
+      onPress={() => handleViewFullNote(item)}
+    >
       <Text style={styles.noteTitle}>{item.title}</Text>
       <Text style={styles.noteContent}>{item.content}</Text>
-    </View>
-  )
+    </TouchableOpacity>
+  );
+
+  const handleCreateStudyGuide = async () => {
+    if (!categoryInput.trim()) {
+      Alert.alert("Error", "Please enter a category");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch('https://backend-study-app-production.up.railway.app/study-guide', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          category: categoryInput.trim(),
+          user_id: userData.userId || userData.user_id || 1
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setStudyGuideResult({
+        visible: true,
+        content: data.guide,
+        category: data.category
+      });
+      setStudyGuideModalVisible(false);
+      setCategoryInput("");
+    } catch (error) {
+      console.error('Error creating study guide:', error);
+      Alert.alert("Error", "Failed to create study guide. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const closeStudyGuideResult = () => {
+    setStudyGuideResult({ visible: false, content: "", category: "" });
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -46,14 +186,14 @@ export default function HomeScreen() {
           <Text style={styles.headerTitle}>Study Assistant</Text>
           
         </View>
-        <TouchableOpacity style={styles.accountButton} onPress={() => navigation.navigate("AccountSettings")}>
+        <TouchableOpacity style={styles.accountButton} onPress={() => navigation.navigate("AccountSettings", { userData })}>
           <Icon name="settings" size={20} color="white" />
           <Text style={styles.accountButtonText}>Account</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.contentContainer}>
-        <Text style={styles.title}>Welcome back, (user)</Text>
+        <Text style={styles.title}>Welcome back, {username}</Text>
 
         <View style={styles.content}>
           {/* Actions Section */}
@@ -73,6 +213,14 @@ export default function HomeScreen() {
             <TouchableOpacity style={styles.whiteButton} onPress={() => navigation.navigate("UploadText")}>
               <Icon name="file-text" size={20} color="black" />
               <Text style={styles.whiteButtonText}>Upload Text</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.whiteButton, {backgroundColor: '#f0f8ff', borderColor: '#4169e1'}]} 
+              onPress={() => setStudyGuideModalVisible(true)}
+            >
+              <Icon name="book" size={20} color="#4169e1" />
+              <Text style={[styles.whiteButtonText, {color: '#4169e1'}]}>Create Study Guide</Text>
             </TouchableOpacity>
           </View>
 
@@ -99,18 +247,115 @@ export default function HomeScreen() {
 
             {/* Notes List */}
             <View style={styles.notesListContainer}>
-              <FlatList
-                data={mockNotes[activeCategory] || []}
-                renderItem={renderNoteItem}
-                keyExtractor={(item) => item.id}
-                style={styles.notesList}
-                scrollEnabled={true}
-                nestedScrollEnabled={true}
-              />
+              {notesLoading ? (
+                <ActivityIndicator size="large" color="#e53e3e" style={styles.notesLoader} />
+              ) : userNotes[activeCategory] && userNotes[activeCategory].length > 0 ? (
+                <FlatList
+                  data={userNotes[activeCategory]}
+                  renderItem={renderNoteItem}
+                  keyExtractor={(item) => item.id}
+                  style={styles.notesList}
+                  scrollEnabled={true}
+                  nestedScrollEnabled={true}
+                />
+              ) : (
+                <View style={styles.emptyNotesContainer}>
+                  <Text style={styles.emptyNotesText}>You have no notes under this subject</Text>
+                </View>
+              )}
             </View>
           </View>
         </View>
       </View>
+
+      {/* Study Guide Category Input Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={studyGuideModalVisible}
+        onRequestClose={() => setStudyGuideModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Create Study Guide</Text>
+            <Text style={styles.modalDescription}>
+              Enter the category to create a study guide from all your notes in that category.
+            </Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Enter category (e.g., Biology, History)"
+              value={categoryInput}
+              onChangeText={setCategoryInput}
+            />
+            <View style={styles.modalButtonContainer}>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.modalCancelButton]} 
+                onPress={() => {
+                  setStudyGuideModalVisible(false);
+                  setCategoryInput("");
+                }}
+              >
+                <Text style={styles.modalCancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.modalCreateButton]} 
+                onPress={handleCreateStudyGuide}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="white" size="small" />
+                ) : (
+                  <Text style={styles.modalCreateButtonText}>Create</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Study Guide Result Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={studyGuideResult.visible}
+        onRequestClose={closeStudyGuideResult}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, styles.studyGuideResultModal]}>
+            <View style={styles.studyGuideHeader}>
+              <Text style={styles.studyGuideTitle}>Study Guide: {studyGuideResult.category}</Text>
+              <TouchableOpacity onPress={closeStudyGuideResult}>
+                <Icon name="x" size={24} color="#000" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.studyGuideContent}>
+              <Text style={styles.studyGuideText}>{studyGuideResult.content}</Text>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Note Detail Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={noteModalVisible}
+        onRequestClose={() => setNoteModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, styles.noteDetailModal]}>
+            <View style={styles.noteDetailHeader}>
+              <Text style={styles.noteDetailTitle}>{selectedNote?.title}</Text>
+              <TouchableOpacity onPress={() => setNoteModalVisible(false)}>
+                <Icon name="x" size={24} color="#000" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.noteDetailContent}>
+              <Text style={styles.noteDetailText}>{selectedNote?.fullContent}</Text>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -249,5 +494,131 @@ const styles = StyleSheet.create({
   },
   noteContent: {
     color: "#6b7280",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    width: '100%',
+    maxWidth: 500,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  modalDescription: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#666',
+  },
+  modalInput: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 20,
+    fontSize: 16,
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  modalButton: {
+    padding: 12,
+    borderRadius: 5,
+    width: '48%',
+    alignItems: 'center',
+  },
+  modalCancelButton: {
+    backgroundColor: '#f2f2f2',
+  },
+  modalCreateButton: {
+    backgroundColor: '#4169e1',
+  },
+  modalCancelButtonText: {
+    color: '#333',
+    fontWeight: '500',
+  },
+  modalCreateButtonText: {
+    color: 'white',
+    fontWeight: '500',
+  },
+  studyGuideResultModal: {
+    height: '80%',
+    alignItems: 'stretch',
+  },
+  studyGuideHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    marginBottom: 10,
+  },
+  studyGuideTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  studyGuideContent: {
+    flex: 1,
+    width: '100%',
+  },
+  studyGuideText: {
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  notesLoader: {
+    marginTop: 40,
+  },
+  emptyNotesContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  emptyNotesText: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+  },
+  noteDetailModal: {
+    height: '70%',
+    alignItems: 'stretch',
+  },
+  noteDetailHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    marginBottom: 16,
+  },
+  noteDetailTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  noteDetailContent: {
+    flex: 1,
+    width: '100%',
+  },
+  noteDetailText: {
+    fontSize: 16,
+    lineHeight: 24,
   },
 })

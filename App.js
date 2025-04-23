@@ -27,11 +27,10 @@ const LoginScreen = ({ navigation }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [age, setAge] = useState('');
-  const [major, setMajor] = useState('');
   const [month, setMonth] = useState('');
   const [day, setDay] = useState('');
   const [year, setYear] = useState('');
+  const [major, setMajor] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = () => {
@@ -118,7 +117,6 @@ const LoginScreen = ({ navigation }) => {
       confirmPassword.trim() === '' ||
       firstName.trim() === '' ||
       lastName.trim() === '' ||
-      age.trim() === '' ||
       major.trim() === '' ||
       month.trim() === '' ||
       day.trim() === '' ||
@@ -154,7 +152,6 @@ const LoginScreen = ({ navigation }) => {
       email: email,
       first_name: firstName,
       last_name: lastName,
-      age: parseInt(age),
       major: major,
       date_of_birth: dateOfBirth
     };
@@ -192,10 +189,16 @@ const LoginScreen = ({ navigation }) => {
       return response.json();
     })
     .then(data => {
+      // Create userData object similar to login response
+      const userData = {
+        userId: data.id,
+        username: data.username
+      };
+
       Alert.alert(
         'Success',
         'Account created successfully!',
-        [{ text: 'OK', onPress: () => navigation.replace('Home') }]
+        [{ text: 'OK', onPress: () => navigation.replace('Home', { userData }) }]
       );
     })
     .catch(error => {
@@ -203,14 +206,23 @@ const LoginScreen = ({ navigation }) => {
     });
   };
 
+  const clearForm = () => {
+    setEmail('');
+    setUsername('');
+    setPassword('');
+    setConfirmPassword('');
+    setFirstName('');
+    setLastName('');
+    setMajor('');
+    setIsSignup(false);
+    setErrorMessage('');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Logo - centered at the top, hidden when signup tab is active */}
       {activeTab !== 'signup' && (
-        <Image 
-          source={NoteAppLogo} 
-          style={styles.centeredLogo}
-        />
+        <Text style={styles.titleText}>Study Assistant</Text>
       )}
 
       <KeyboardAvoidingView
@@ -330,13 +342,6 @@ const LoginScreen = ({ navigation }) => {
                       />
                     </View>
                   </View>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Age"
-                    value={age}
-                    onChangeText={setAge}
-                    keyboardType="numeric"
-                  />
                   <TextInput
                     style={styles.input}
                     placeholder="Major"
@@ -522,5 +527,13 @@ const styles = StyleSheet.create({
   loader: {
     marginTop: 20,
     marginBottom: 10,
+  },
+  titleText: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginTop: 30,
+    marginBottom: 20,
+    color: '#e53e3e',
+    textAlign: 'center',
   },
 });

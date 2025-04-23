@@ -3,24 +3,23 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator
 import * as FileSystem from 'expo-file-system';
 import { Audio } from 'expo-av';
 import Icon from 'react-native-vector-icons/Feather';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 const BACKEND_URL = 'https://backend-study-app-production.up.railway.app';
 
 export default function RecordAudioScreen() {
   const [isRecording, setIsRecording] = useState(false);
   const [audioUri, setAudioUri] = useState(null);
-  const [transcription, setTranscription] = useState('');
-  const [summary, setSummary] = useState('');
   const [uploading, setUploading] = useState(false);
-  const [summarizing, setSummarizing] = useState(false);
   const [sound, setSound] = useState();
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
+  const navigation = useNavigation();
+  const route = useRoute();
+  const userData = route?.params?.userData || { userId: 2 };
 
   const startRecording = async () => {
     try {
-      setTranscription('');
-      setSummary('');
       const permission = await Audio.requestPermissionsAsync();
       if (!permission.granted) throw new Error('Permission to access microphone is required');
 
@@ -63,63 +62,110 @@ export default function RecordAudioScreen() {
     startRecording();
   };
 
-  const transcribeAudio = async () => {
+  const handleSaveRecording = async () => {
     if (!audioUri) return;
-    setUploading(true);
-    setTranscription('');
-
-    try {
-      let response;
-      if (Platform.OS === 'web') {
-        const blob = await (await fetch(audioUri)).blob();
-        const formData = new FormData();
-        formData.append('file', new File([blob], 'recording.wav', { type: 'audio/wav' }));
-        response = await fetch(`${BACKEND_URL}/transcribe?stream=false`, {
-          method: 'POST',
-          body: formData,
-        });
-      } else {
-        const result = await FileSystem.uploadAsync(`${BACKEND_URL}/transcribe?stream=false`, audioUri, {
-          fieldName: 'file',
-          httpMethod: 'POST',
-          uploadType: FileSystem.FileSystemUploadType.MULTIPART,
-          mimeType: 'audio/m4a',
-        });
-        response = {
-          json: async () => JSON.parse(result.body),
-        };
-      }
-
-      const data = await response.json();
-      console.log('📝 Transcribe response:', data);
-      setTranscription(data.transcription || '');
-    } catch (err) {
-      console.error('Transcription failed', err);
-      Alert.alert('Error', 'Failed to transcribe audio.');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const summarizeText = async () => {
-    if (!transcription) return;
-    setSummarizing(true);
-
-    try {
-      const response = await fetch(`${BACKEND_URL}/summarize`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: transcription }),
-      });
-
-      const data = await response.json();
-      setSummary(data.summary);
-    } catch (err) {
-      console.error('Summarization failed', err);
-      Alert.alert('Error', 'Failed to summarize the note.');
-    } finally {
-      setSummarizing(false);
-    }
+    
+    // First ask for a title before processing
+    Alert.prompt(
+      "Save Recording",
+      "Enter a title for your note:",
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        },
+        {
+          text: 'Save',
+          onPress: async (title) => {
+            if (!title || title.trim() === '') {
+              Alert.alert('Error', 'Please enter a valid title.');
+              return;
+            }
+            
+            // Show loading indicator
+            setUploading(true);
+            
+            try {
+              // Step 1: Transcribe the audio
+              let transcribeResponse;
+              if (Platform.OS === 'web') {
+                const blob = await (await fetch(audioUri)).blob();
+                const formData = new FormData();
+                formData.append('file', new File([blob], 'recording.wav', { type: 'audio/wav' }));
+                transcribeResponse = await fetch(`${BACKEND_URL}/transcribe?stream=false`, {
+                  method: 'POST',
+                  body: formData,
+                });
+              } else {
+                const result = await FileSystem.uploadAsync(`${BACKEND_URL}/transcribe?stream=false`, audioUri, {
+                  fieldName: 'file',
+                  httpMethod: 'POST',
+                  uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+                  mimeType: 'audio/m4a',
+                });
+                transcribeResponse = {
+                  json: async () => JSON.parse(result.body),
+                };
+              }
+              
+              const transcribeData = await transcribeResponse.json();
+              const transcription = transcribeData.transcription || '';
+              
+              if (!transcription) {
+                throw new Error('Failed to transcribe the audio.');
+              }
+              
+              // Step 2: Summarize the transcription
+              const summarizeResponse = await fetch(`${BACKEND_URL}/summarize`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: transcription }),
+              });
+              
+              const summarizeData = await summarizeResponse.json();
+              const summary = summarizeData.summary || '';
+              
+              // Get user ID from userData (handling both formats)
+              const userId = userData.userId || userData.user_id || 2;
+              
+              // Step 3: Save the note with all data
+              const saveResponse = await fetch(`${BACKEND_URL}/notes`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  user_id: userId,
+                  title: title.trim(),
+                  category: selectedCategory,
+                  transcription: transcription,
+                  summarized_notes: summary
+                })
+              });
+              
+              const saveData = await saveResponse.json();
+              
+              if (saveResponse.ok) {
+                Alert.alert("Success", "Note saved successfully!");
+                // Clear states for a new recording
+                setAudioUri(null);
+                // Clear entire navigation stack and set Home as the only screen
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'Home', params: { userData, refresh: Date.now() } }],
+                });
+              } else {
+                throw new Error('Failed to save the note.');
+              }
+            } catch (err) {
+              console.error('Process failed:', err);
+              Alert.alert('Error', err.message || 'Failed to process recording.');
+            } finally {
+              setUploading(false);
+            }
+          }
+        },
+      ],
+      'plain-text'
+    );
   };
 
   return (
@@ -145,52 +191,23 @@ export default function RecordAudioScreen() {
             )}
 
             {audioUri && !isRecording && (
-              <>
+              <View style={styles.actionButtonsContainer}>
                 <TouchableOpacity style={styles.replayButton} onPress={playRecording}>
                   <Icon name="play" size={24} color="white" />
                   <Text style={styles.buttonText}>Replay Audio</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.recordButton} onPress={transcribeAudio}>
-                  <Icon name="upload" size={24} color="white" />
-                  <Text style={styles.buttonText}>Transcribe</Text>
+                <TouchableOpacity style={styles.saveButton} onPress={handleSaveRecording}>
+                  <Icon name="save" size={24} color="white" />
+                  <Text style={styles.buttonText}>Save Recording</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.stopButton, { backgroundColor: summarizing || !transcription ? '#999' : '#e53e3e' }]}
-                  disabled={!transcription || summarizing}
-                  onPress={summarizeText}
-                >
-                  <Icon name="book-open" size={24} color="white" />
-                  <Text style={styles.buttonText}>Summarize</Text>
-                </TouchableOpacity>
-              </>
+              </View>
             )}
           </View>
 
           {uploading && <ActivityIndicator size="large" color="#2196F3" style={{ marginVertical: 10 }} />}
-          {transcription !== '' && (
-            <ScrollView
-            style={{ padding: 16 }}
-            contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}
-  >         
-            <Text style={styles.modalTitle}>Transcription:</Text>
-            <Text>{transcription}</Text>
-          </ScrollView>
-          
-          )}
-
-          {summary !== '' && (
-            <ScrollView 
-            style={{ padding: 16 }} 
-            contentContainerStyle={{ flexGrow: 1, alignItems: 'flex-start' }}  // Or center, stretch, etc.
-          >
-            <Text style={styles.modalTitle}>Summary:</Text>
-            <Text>{summary}</Text>
-          </ScrollView>
-  
-          )}
 
           <Text style={styles.statusText}>
-            {isRecording ? "Recording in progress..." : audioUri ? "Recording saved. Ready to replay." : "Ready to record"}
+            {isRecording ? "Recording in progress..." : audioUri ? "Recording saved. Ready to save." : "Ready to record"}
           </Text>
         </View>
       </View>
@@ -219,14 +236,16 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 20, fontWeight: "bold", color: "#e53e3e", marginBottom: 8 },
   cardDescription: { fontSize: 14, color: "#6b7280", textAlign: "center" },
   recordingContainer: { alignItems: "center", marginBottom: 24 },
-  recordButton: { backgroundColor: "black", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, marginBottom: 10 },
-  stopButton: { backgroundColor: "#e53e3e", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, marginBottom: 10 },
-  replayButton: { backgroundColor: "#000000", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8 },
+  recordButton: { backgroundColor: "black", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, marginBottom: 10, width: '100%', maxWidth: 250 },
+  stopButton: { backgroundColor: "#e53e3e", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, marginBottom: 10, width: '100%', maxWidth: 250 },
+  replayButton: { backgroundColor: "#000000", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, marginBottom: 15, width: '100%', maxWidth: 250 },
+  saveButton: { backgroundColor: "#4CAF50", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, width: '100%', maxWidth: 250 },
   buttonText: { color: "white", fontWeight: "bold", marginLeft: 8 },
-  statusText: { textAlign: "center", color: "#6b7280", fontSize: 14 },
+  statusText: { textAlign: "center", color: "#6b7280", fontSize: 14, marginTop: 20 },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
   modalContent: { backgroundColor: "white", borderRadius: 10, padding: 24, width: "80%", alignItems: "center", marginBottom: 16 },
   modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 16, textAlign: "center" },
   sectionButton: { backgroundColor: "#1f2937", paddingVertical: 10, paddingHorizontal: 24, borderRadius: 8, marginVertical: 6, width: "100%", alignItems: "center" },
   sectionButtonText: { color: "white", fontWeight: "bold" },
+  actionButtonsContainer: { width: '100%', alignItems: "center" }
 });
