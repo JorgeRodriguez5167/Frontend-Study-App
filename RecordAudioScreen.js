@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Modal, Alert, Platform, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Modal, Alert, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import { Audio } from 'expo-av';
 import Icon from 'react-native-vector-icons/Feather';
@@ -14,8 +14,6 @@ export default function RecordAudioScreen() {
   const [sound, setSound] = useState();
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [showTitleModal, setShowTitleModal] = useState(false);
-  const [noteTitle, setNoteTitle] = useState('');
   const navigation = useNavigation();
   const route = useRoute();
   const userData = route?.params?.userData || { userId: 2 };
@@ -28,35 +26,9 @@ export default function RecordAudioScreen() {
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
-        shouldDuckAndroid: true,
-        playThroughEarpieceAndroid: false,
-        staysActiveInBackground: true,
       });
 
-      const { recording } = await Audio.Recording.createAsync(
-        {
-          ...Audio.RecordingOptionsPresets.HIGH_QUALITY,
-          android: {
-            extension: '.m4a',
-            outputFormat: Audio.AndroidOutputFormat.MPEG_4,
-            audioEncoder: Audio.AndroidAudioEncoder.AAC,
-            sampleRate: 44100,
-            numberOfChannels: 2,
-            bitRate: 128000,
-          },
-          ios: {
-            extension: '.m4a',
-            outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
-            audioQuality: Audio.IOSAudioQuality.MAX,
-            sampleRate: 44100,
-            numberOfChannels: 2,
-            bitRate: 128000,
-            linearPCMBitDepth: 16,
-            linearPCMIsBigEndian: false,
-            linearPCMIsFloat: false,
-          },
-        }
-      );
+      const { recording } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
       setIsRecording(recording);
     } catch (err) {
       console.error('Failed to start recording', err);
@@ -92,99 +64,108 @@ export default function RecordAudioScreen() {
 
   const handleSaveRecording = async () => {
     if (!audioUri) return;
-    // Show custom title input modal instead of using Alert.prompt
-    setNoteTitle('');
-    setShowTitleModal(true);
-  };
-
-  const handleSaveWithTitle = async () => {
-    if (!noteTitle || noteTitle.trim() === '') {
-      Alert.alert('Error', 'Please enter a valid title.');
-      return;
-    }
     
-    // Hide the title modal
-    setShowTitleModal(false);
-    
-    // Show loading indicator
-    setUploading(true);
-    
-    try {
-      // Step 1: Transcribe the audio
-      let transcribeResponse;
-      if (Platform.OS === 'web') {
-        const blob = await (await fetch(audioUri)).blob();
-        const formData = new FormData();
-        formData.append('file', new File([blob], 'recording.wav', { type: 'audio/wav' }));
-        transcribeResponse = await fetch(`${BACKEND_URL}/transcribe?stream=false`, {
-          method: 'POST',
-          body: formData,
-        });
-      } else {
-        const result = await FileSystem.uploadAsync(`${BACKEND_URL}/transcribe?stream=false`, audioUri, {
-          fieldName: 'file',
-          httpMethod: 'POST',
-          uploadType: FileSystem.FileSystemUploadType.MULTIPART,
-          mimeType: 'audio/m4a',
-        });
-        transcribeResponse = {
-          json: async () => JSON.parse(result.body),
-        };
-      }
-      
-      const transcribeData = await transcribeResponse.json();
-      const transcription = transcribeData.transcription || '';
-      
-      if (!transcription) {
-        throw new Error('Failed to transcribe the audio.');
-      }
-      
-      // Step 2: Summarize the transcription
-      const summarizeResponse = await fetch(`${BACKEND_URL}/summarize`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: transcription }),
-      });
-      
-      const summarizeData = await summarizeResponse.json();
-      const summary = summarizeData.summary || '';
-      
-      // Get user ID from userData (handling both formats)
-      const userId = userData.userId || userData.user_id || 2;
-      
-      // Step 3: Save the note with all data
-      const saveResponse = await fetch(`${BACKEND_URL}/notes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: userId,
-          title: noteTitle.trim(),
-          category: selectedCategory,
-          transcription: transcription,
-          summarized_notes: summary
-        })
-      });
-      
-      const saveData = await saveResponse.json();
-      
-      if (saveResponse.ok) {
-        Alert.alert("Success", "Note saved successfully!");
-        // Clear states for a new recording
-        setAudioUri(null);
-        // Clear entire navigation stack and set Home as the only screen
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Home', params: { userData, refresh: Date.now() } }],
-        });
-      } else {
-        throw new Error('Failed to save the note.');
-      }
-    } catch (err) {
-      console.error('Process failed:', err);
-      Alert.alert('Error', err.message || 'Failed to process recording.');
-    } finally {
-      setUploading(false);
-    }
+    // First ask for a title before processing
+    Alert.prompt(
+      "Save Recording",
+      "Enter a title for your note:",
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        },
+        {
+          text: 'Save',
+          onPress: async (title) => {
+            if (!title || title.trim() === '') {
+              Alert.alert('Error', 'Please enter a valid title.');
+              return;
+            }
+            
+            // Show loading indicator
+            setUploading(true);
+            
+            try {
+              // Step 1: Transcribe the audio
+              let transcribeResponse;
+              if (Platform.OS === 'web') {
+                const blob = await (await fetch(audioUri)).blob();
+                const formData = new FormData();
+                formData.append('file', new File([blob], 'recording.wav', { type: 'audio/wav' }));
+                transcribeResponse = await fetch(`${BACKEND_URL}/transcribe?stream=false`, {
+                  method: 'POST',
+                  body: formData,
+                });
+              } else {
+                const result = await FileSystem.uploadAsync(`${BACKEND_URL}/transcribe?stream=false`, audioUri, {
+                  fieldName: 'file',
+                  httpMethod: 'POST',
+                  uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+                  mimeType: 'audio/m4a',
+                });
+                transcribeResponse = {
+                  json: async () => JSON.parse(result.body),
+                };
+              }
+              
+              const transcribeData = await transcribeResponse.json();
+              const transcription = transcribeData.transcription || '';
+              
+              if (!transcription) {
+                throw new Error('Failed to transcribe the audio.');
+              }
+              
+              // Step 2: Summarize the transcription
+              const summarizeResponse = await fetch(`${BACKEND_URL}/summarize`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: transcription }),
+              });
+              
+              const summarizeData = await summarizeResponse.json();
+              const summary = summarizeData.summary || '';
+              
+              // Get user ID from userData (handling both formats)
+              const userId = userData.userId || userData.user_id || 2;
+              
+              // Step 3: Save the note with all data
+              const saveResponse = await fetch(`${BACKEND_URL}/notes`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  user_id: userId,
+                  title: title.trim(),
+                  category: selectedCategory,
+                  transcription: transcription,
+                  summarized_notes: summary
+                })
+              });
+              
+              const saveData = await saveResponse.json();
+              
+              if (saveResponse.ok) {
+                Alert.alert("Success", "Note saved successfully!");
+                // Clear states for a new recording
+                setAudioUri(null);
+                // Clear entire navigation stack and set Home as the only screen
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'Home', params: { userData, refresh: Date.now() } }],
+                });
+              } else {
+                throw new Error('Failed to save the note.');
+              }
+            } catch (err) {
+              console.error('Process failed:', err);
+              Alert.alert('Error', err.message || 'Failed to process recording.');
+            } finally {
+              setUploading(false);
+            }
+          }
+        },
+      ],
+      'plain-text'
+    );
   };
 
   return (
@@ -243,36 +224,6 @@ export default function RecordAudioScreen() {
           </View>
         </View>
       </Modal>
-
-      <Modal transparent visible={showTitleModal} animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Save Recording</Text>
-            <Text style={styles.modalSubtitle}>Enter a title for your note:</Text>
-            <TextInput
-              style={styles.input}
-              value={noteTitle}
-              onChangeText={setNoteTitle}
-              placeholder="Enter title"
-              autoFocus={true}
-            />
-            <View style={styles.modalButtonContainer}>
-              <TouchableOpacity 
-                style={[styles.modalButton, styles.cancelButton]} 
-                onPress={() => setShowTitleModal(false)}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.modalButton, styles.confirmButton]} 
-                onPress={handleSaveWithTitle}
-              >
-                <Text style={styles.confirmButtonText}>Save</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
@@ -294,41 +245,7 @@ const styles = StyleSheet.create({
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
   modalContent: { backgroundColor: "white", borderRadius: 10, padding: 24, width: "80%", alignItems: "center", marginBottom: 16 },
   modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 16, textAlign: "center" },
-  modalSubtitle: { fontSize: 14, color: "#6b7280", textAlign: "center", marginBottom: 20 },
   sectionButton: { backgroundColor: "#1f2937", paddingVertical: 10, paddingHorizontal: 24, borderRadius: 8, marginVertical: 6, width: "100%", alignItems: "center" },
   sectionButtonText: { color: "white", fontWeight: "bold" },
-  actionButtonsContainer: { width: '100%', alignItems: "center" },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    marginBottom: 10,
-    width: '100%',
-  },
-  modalButtonContainer: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    width: '100%',
-    marginTop: 10
-  },
-  modalButton: { 
-    padding: 12, 
-    borderRadius: 8,
-    width: '48%',
-    alignItems: 'center'
-  },
-  cancelButton: { 
-    backgroundColor: "#f2f2f2" 
-  },
-  cancelButtonText: { 
-    color: "#333",
-    fontWeight: "bold" 
-  },
-  confirmButton: { 
-    backgroundColor: "#4CAF50" 
-  },
-  confirmButtonText: { 
-    color: "white",
-    fontWeight: "bold" 
-  },
+  actionButtonsContainer: { width: '100%', alignItems: "center" }
 });
