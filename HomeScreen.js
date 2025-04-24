@@ -191,7 +191,7 @@ export default function HomeScreen({route}) {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.contentContainer}>
+      <ScrollView style={styles.contentContainer}>
         <Text style={styles.title}>Welcome back, {username}</Text>
 
         <View style={styles.content}>
@@ -255,7 +255,6 @@ export default function HomeScreen({route}) {
                   keyExtractor={(item) => item.id}
                   style={styles.notesList}
                   scrollEnabled={true}
-                  nestedScrollEnabled={true}
                 />
               ) : (
                 <View style={styles.emptyNotesContainer}>
@@ -265,7 +264,7 @@ export default function HomeScreen({route}) {
             </View>
           </View>
         </View>
-      </View>
+      </ScrollView>
 
       {/* Study Guide Category Input Modal */}
       <Modal

@@ -4,7 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import {
   StyleSheet, Text, View, TextInput, TouchableOpacity, Alert,
   SafeAreaView, KeyboardAvoidingView, Platform, ScrollView, Image,
-  ActivityIndicator
+  ActivityIndicator, LogBox
 } from 'react-native';
 
 import HomeScreen from './HomeScreen';
@@ -18,6 +18,8 @@ import RecordAudioScreen from './RecordAudioScreen';
 import NoteAppLogo from './assets/NoteAppLogo.png';
 
 const Stack = createStackNavigator();
+
+LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 
 const LoginScreen = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState('login');
