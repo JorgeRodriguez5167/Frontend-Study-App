@@ -36,8 +36,13 @@ const LoginScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = () => {
-    if (username.trim() === '' || password.trim() === '') {
-      Alert.alert('Error', 'Please enter both username and password.');
+    // Simple validation
+    if (!username || !password) {
+      Alert.alert(
+        'Error',
+        'Please enter both username and password.',
+        [{ text: 'OK' }]
+      );
       return;
     }
     
@@ -124,11 +129,19 @@ const LoginScreen = ({ navigation }) => {
       day.trim() === '' ||
       year.trim() === ''
     ) {
-      Alert.alert('Error', 'Please fill out all fields.');
+      Alert.alert(
+        'Error',
+        'Please fill out all fields.',
+        [{ text: 'OK' }]
+      );
       return;
     }
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match.');
+      Alert.alert(
+        'Error',
+        'Passwords do not match.',
+        [{ text: 'OK' }]
+      );
       return;
     }
 
@@ -137,9 +150,41 @@ const LoginScreen = ({ navigation }) => {
     const dayNum = parseInt(day);
     const yearNum = parseInt(year);
     
-    if (monthNum < 1 || monthNum > 12 || dayNum < 1 || dayNum > 31 || yearNum < 1900 || yearNum > new Date().getFullYear()) {
-      Alert.alert('Error', 'Please enter a valid date of birth.');
+    if (isNaN(monthNum) || isNaN(dayNum) || isNaN(yearNum) || 
+        monthNum < 1 || monthNum > 12 || 
+        dayNum < 1 || dayNum > 31 || 
+        yearNum < 1900 || yearNum > new Date().getFullYear()) {
+      Alert.alert(
+        'Error',
+        'Please enter a valid date of birth.',
+        [{ text: 'OK' }]
+      );
       return;
+    }
+    
+    // Additional validation for specific months
+    if ((monthNum === 4 || monthNum === 6 || monthNum === 9 || monthNum === 11) && dayNum > 30) {
+      Alert.alert(
+        'Error',
+        'The selected month has only 30 days.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+    
+    // February validation (including leap years)
+    if (monthNum === 2) {
+      const isLeapYear = (yearNum % 4 === 0 && yearNum % 100 !== 0) || (yearNum % 400 === 0);
+      const maxDays = isLeapYear ? 29 : 28;
+      
+      if (dayNum > maxDays) {
+        Alert.alert(
+          'Error',
+          `February ${yearNum} has only ${maxDays} days.`,
+          [{ text: 'OK' }]
+        );
+        return;
+      }
     }
 
     // Format date of birth in ISO format (YYYY-MM-DD)
@@ -204,7 +249,11 @@ const LoginScreen = ({ navigation }) => {
       );
     })
     .catch(error => {
-      Alert.alert('Error', error.message);
+      Alert.alert(
+        'Error',
+        error.message,
+        [{ text: 'OK' }]
+      );
     });
   };
 
@@ -231,7 +280,7 @@ const LoginScreen = ({ navigation }) => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardAvoidingContainer}
         contentContainerStyle={{flex: 1}}
-        keyboardVerticalOffset={activeTab === 'signup' ? -100 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
       >
         <View style={styles.scrollViewContainer}>
           <View style={styles.card}>

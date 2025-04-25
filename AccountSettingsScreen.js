@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, TextInput, Alert, ActivityIndicator } from "react-native"
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, TextInput, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native"
 import Icon from "react-native-vector-icons/Feather"
 import { useNavigation, useRoute } from "@react-navigation/native"
 
@@ -76,7 +76,14 @@ export default function AccountSettingsScreen({ route }) {
         throw new Error(errorData.detail || 'Failed to update profile');
       }
 
-      Alert.alert('Success', 'Profile updated successfully');
+      const data = await response.json();
+      console.log('Update response:', data);
+      
+      Alert.alert(
+        'Success',
+        'Profile updated successfully',
+        [{ text: 'OK' }]
+      );
     } catch (error) {
       console.error('Error updating profile:', error);
       Alert.alert('Error', error.message || 'Failed to update profile');
@@ -144,7 +151,11 @@ export default function AccountSettingsScreen({ route }) {
       setNewPassword("");
       setConfirmPassword("");
       
-      Alert.alert('Success', 'Password updated successfully');
+      Alert.alert(
+        'Success',
+        'Password updated successfully',
+        [{ text: 'OK' }]
+      );
     } catch (error) {
       console.error('Error updating password:', error);
       setPasswordError(error.message || 'Failed to update password');
@@ -317,38 +328,47 @@ export default function AccountSettingsScreen({ route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.content}>
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>Account Settings</Text>
-            </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{flex: 1}}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
+      >
+        <ScrollView 
+          style={styles.scrollView}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.content}>
+            <View style={styles.card}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>Account Settings</Text>
+              </View>
 
-            <View style={styles.tabs}>
-              <TouchableOpacity
-                style={[styles.tab, activeTab === "profile" && styles.activeTab]}
-                onPress={() => setActiveTab("profile")}
-              >
-                <Text style={[styles.tabText, activeTab === "profile" && styles.activeTabText]}>Profile</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.tab, activeTab === "security" && styles.activeTab]}
-                onPress={() => setActiveTab("security")}
-              >
-                <Text style={[styles.tabText, activeTab === "security" && styles.activeTabText]}>Security</Text>
-              </TouchableOpacity>
-            </View>
+              <View style={styles.tabs}>
+                <TouchableOpacity
+                  style={[styles.tab, activeTab === "profile" && styles.activeTab]}
+                  onPress={() => setActiveTab("profile")}
+                >
+                  <Text style={[styles.tabText, activeTab === "profile" && styles.activeTabText]}>Profile</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.tab, activeTab === "security" && styles.activeTab]}
+                  onPress={() => setActiveTab("security")}
+                >
+                  <Text style={[styles.tabText, activeTab === "security" && styles.activeTabText]}>Security</Text>
+                </TouchableOpacity>
+              </View>
 
-            {renderTabContent()}
+              {renderTabContent()}
+            </View>
+            
+            {/* Global Logout Button */}
+            <TouchableOpacity style={styles.globalLogoutButton} onPress={handleLogout}>
+              <Icon name="log-out" size={20} color="white" />
+              <Text style={styles.logoutButtonText}>Logout</Text>
+            </TouchableOpacity>
           </View>
-          
-          {/* Global Logout Button */}
-          <TouchableOpacity style={styles.globalLogoutButton} onPress={handleLogout}>
-            <Icon name="log-out" size={20} color="white" />
-            <Text style={styles.logoutButtonText}>Logout</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   )
 }

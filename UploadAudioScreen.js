@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, ScrollView,
-  StyleSheet, ActivityIndicator, Alert, Modal, Platform
+  StyleSheet, ActivityIndicator, Alert, Modal, Platform, TextInput
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import Icon from 'react-native-vector-icons/Feather';
+import { useRoute, useNavigation } from '@react-navigation/native';
 
 const BACKEND_URL = 'https://backend-study-app-production.up.railway.app';
 
@@ -17,6 +18,15 @@ export default function UploadAudioScreen() {
   const [summarizing, setSummarizing] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
+  const route = useRoute();
+  const navigation = useNavigation();
+  const userData = route?.params?.userData || { userId: 1 };
+  
+  // For Android prompt
+  const [showTitlePrompt, setShowTitlePrompt] = useState(false);
+  const [titleInput, setTitleInput] = useState('');
+  const [promptType, setPromptType] = useState('');
+  const [promptContent, setPromptContent] = useState('');
 
   const handleCategorySelect = (category) => {
     setSelectedCategory(category);
@@ -34,7 +44,11 @@ export default function UploadAudioScreen() {
       }
     } catch (err) {
       console.error('File selection failed', err);
-      Alert.alert('Error', 'Could not select audio file.');
+      Alert.alert(
+        'Error',
+        'Could not select audio file.',
+        [{ text: 'OK' }]
+      );
     }
   };
 
@@ -70,7 +84,11 @@ export default function UploadAudioScreen() {
       setTranscription(data.transcription || '');
     } catch (err) {
       console.error('Transcription failed', err);
-      Alert.alert('Error', 'Failed to transcribe audio.');
+      Alert.alert(
+        'Error',
+        'Failed to transcribe audio.',
+        [{ text: 'OK' }]
+      );
     } finally {
       setUploading(false);
     }
@@ -91,7 +109,11 @@ export default function UploadAudioScreen() {
       setSummary(data.summary);
     } catch (err) {
       console.error('Summarization failed', err);
-      Alert.alert('Error', 'Failed to summarize the note.');
+      Alert.alert(
+        'Error',
+        'Failed to summarize the note.',
+        [{ text: 'OK' }]
+      );
     } finally {
       setSummarizing(false);
     }
@@ -100,36 +122,47 @@ export default function UploadAudioScreen() {
  const saveNote = async (type, content) => {
   if (!content) return;
 
-  Alert.prompt(
-    `Save ${type}`,
-    "Enter a title:",
-    [
-      {
-        text: 'Cancel',
-        style: 'cancel',
-      },
-      {
-        text: 'Save',
-        onPress: (baseTitle) => {
-          if (!baseTitle || baseTitle.trim() === '') return;
-          
-          const finalTitle = `${baseTitle.trim()} ${type === 'Summary' ? 'Summary' : 'Notes'}`;
-          
-          saveNoteToServer(finalTitle, type, content);
-        }
-      },
-    ],
-    'plain-text'
-  );
+  if (Platform.OS === 'ios') {
+    // Use native iOS Alert.prompt
+    Alert.prompt(
+      `Save ${type}`,
+      "Enter a title:",
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Save',
+          onPress: (baseTitle) => {
+            if (!baseTitle || baseTitle.trim() === '') return;
+            
+            const finalTitle = `${baseTitle.trim()} ${type === 'Summary' ? 'Summary' : 'Notes'}`;
+            
+            saveNoteToServer(finalTitle, type, content);
+          }
+        },
+      ],
+      'plain-text'
+    );
+  } else {
+    // Show custom modal for Android
+    setTitleInput('');
+    setPromptType(type);
+    setPromptContent(content);
+    setShowTitlePrompt(true);
+  }
 };
 
 const saveNoteToServer = async (finalTitle, type, content) => {
   try {
+    const userId = userData.userId || userData.user_id || 1;
+    
     const response = await fetch(`${BACKEND_URL}/notes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        user_id: 2,
+        user_id: userId,
         title: finalTitle,
         category: selectedCategory,
         transcription: type === 'Transcription' ? content : null,
@@ -139,15 +172,38 @@ const saveNoteToServer = async (finalTitle, type, content) => {
 
     const data = await response.json();
     if (response.ok) {
-      Alert.alert("Success", `${type} saved as '${finalTitle}'`);
+      Alert.alert(
+        "Success",
+        `${type} saved as '${finalTitle}'`,
+        [{ text: 'OK' }]
+      );
       console.log(`Saved ${type} note`, data);
+      
+      // Reset states
+      setAudioUri(null);
+      setTranscription('');
+      setSummary('');
+      
+      // Navigate back to Home with refresh trigger
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Home', params: { userData, refresh: Date.now() } }],
+      });
     } else {
-      Alert.alert("Failed", `Could not save ${type}.`);
+      Alert.alert(
+        "Failed",
+        `Could not save ${type}.`,
+        [{ text: 'OK' }]
+      );
       console.error("Save error:", data);
     }
   } catch (err) {
     console.error('Note save failed:', err);
-    Alert.alert("Error", "Something went wrong.");
+    Alert.alert(
+      "Error",
+      "Something went wrong.",
+      [{ text: 'OK' }]
+    );
   }
 };
 
@@ -216,6 +272,43 @@ const saveNoteToServer = async (finalTitle, type, content) => {
           </View>
         </View>
       </Modal>
+
+      {/* Custom Android Title Input Modal */}
+      <Modal transparent visible={showTitlePrompt} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{`Save ${promptType}`}</Text>
+            <Text style={styles.modalDescription}>Enter a title:</Text>
+            <TextInput
+              style={styles.titleInput}
+              value={titleInput}
+              onChangeText={setTitleInput}
+              placeholder="Enter title"
+              autoFocus
+            />
+            <View style={styles.modalButtonRow}>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.cancelButton]} 
+                onPress={() => setShowTitlePrompt(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.saveButton]}
+                onPress={() => {
+                  setShowTitlePrompt(false);
+                  if (!titleInput || titleInput.trim() === '') return;
+                  
+                  const finalTitle = `${titleInput.trim()} ${promptType === 'Summary' ? 'Summary' : 'Notes'}`;
+                  saveNoteToServer(finalTitle, promptType, promptContent);
+                }}
+              >
+                <Text style={styles.saveButtonText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -232,8 +325,16 @@ const styles = StyleSheet.create({
   buttonText: { color: "white", fontWeight: "bold", marginLeft: 8 },
   statusText: { textAlign: "center", color: "#6b7280", fontSize: 14 },
   modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 16, textAlign: "center" },
+  modalDescription: { fontSize: 14, color: "#6b7280", textAlign: "center", marginBottom: 20 },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
   modalContent: { backgroundColor: "white", borderRadius: 10, padding: 24, width: "80%", alignItems: "center", marginBottom: 16 },
+  titleInput: { width: '100%', height: 40, borderColor: 'gray', borderWidth: 1, padding: 10, borderRadius: 5, marginBottom: 10 },
+  modalButtonRow: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginTop: 20 },
+  modalButton: { padding: 10, borderRadius: 5, width: '48%', alignItems: 'center' },
+  cancelButton: { backgroundColor: "#e53e3e" },
+  cancelButtonText: { color: "white", fontWeight: "bold" },
+  saveButton: { backgroundColor: "#4CAF50" },
+  saveButtonText: { color: "white", fontWeight: "bold" },
   sectionButton: { backgroundColor: "#1f2937", paddingVertical: 10, paddingHorizontal: 24, borderRadius: 8, marginVertical: 6, width: "100%", alignItems: "center" },
   sectionButtonText: { color: "white", fontWeight: "bold" },
 });

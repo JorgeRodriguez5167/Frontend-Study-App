@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native";
 import Icon from "react-native-vector-icons/Feather";
+import { useRoute } from "@react-navigation/native";
 
 export default function UploadTextScreen() {
   const [file, setFile] = useState(null);
+  const route = useRoute();
+  const userData = route?.params?.userData || { userId: 1 };
 
   const handleUpload = () => {
     // In a real app, you would upload the file to your server here
-    console.log("Uploading file...");
+    console.log("Uploading file...", userData);
   };
 
   return (

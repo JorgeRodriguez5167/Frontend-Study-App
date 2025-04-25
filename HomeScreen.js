@@ -15,6 +15,7 @@ export default function HomeScreen({route}) {
   const [selectedNote, setSelectedNote] = useState(null)
   const [noteModalVisible, setNoteModalVisible] = useState(false)
   const [notesLoading, setNotesLoading] = useState(false)
+  const [activeNoteTab, setActiveNoteTab] = useState("summary")
   const navigation = useNavigation()
   
   // Extract user data from navigation route params
@@ -109,14 +110,11 @@ export default function HomeScreen({route}) {
   const getFirstSentence = (text) => {
     if (!text) return "";
     
-    // Find the first sentence ending (period, exclamation, question mark)
-    const match = text.match(/^.*?[.!?](?:\s|$)/);
-    if (match) {
-      return match[0] + "...";
-    }
+    // Limit to first 10 words
+    const words = text.split(/\s+/);
+    const firstTenWords = words.slice(0, 10).join(' ');
     
-    // If no sentence ending found, return first 50 characters
-    return text.length > 50 ? text.substring(0, 50) + "..." : text;
+    return firstTenWords + "...";
   };
 
   const handleViewFullNote = (note) => {
@@ -136,7 +134,11 @@ export default function HomeScreen({route}) {
 
   const handleCreateStudyGuide = async () => {
     if (!categoryInput.trim()) {
-      Alert.alert("Error", "Please enter a category");
+      Alert.alert(
+        "Error",
+        "Please enter a category",
+        [{ text: 'OK' }]
+      );
       return;
     }
 
@@ -167,7 +169,11 @@ export default function HomeScreen({route}) {
       setCategoryInput("");
     } catch (error) {
       console.error('Error creating study guide:', error);
-      Alert.alert("Error", "Failed to create study guide. Please try again.");
+      Alert.alert(
+        "Error",
+        "Failed to create study guide. Please try again.",
+        [{ text: 'OK' }]
+      );
     } finally {
       setLoading(false);
     }
@@ -191,7 +197,7 @@ export default function HomeScreen({route}) {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.contentContainer}>
+      <View style={styles.contentContainer}>
         <Text style={styles.title}>Welcome back, {username}</Text>
 
         <View style={styles.content}>
@@ -199,17 +205,17 @@ export default function HomeScreen({route}) {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Create New Notes</Text>
 
-            <TouchableOpacity style={styles.blackButton} onPress={() => navigation.navigate("RecordAudio")}>
+            <TouchableOpacity style={styles.blackButton} onPress={() => navigation.navigate("RecordAudio", { userData })}>
               <Icon name="mic" size={20} color="white" />
               <Text style={styles.blackButtonText}>Record Lecture</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.whiteButton} onPress={() => navigation.navigate("UploadAudio")}>
+            <TouchableOpacity style={styles.whiteButton} onPress={() => navigation.navigate("UploadAudio", { userData })}>
               <Icon name="upload" size={20} color="black" />
               <Text style={styles.whiteButtonText}>Upload Audio</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.whiteButton} onPress={() => navigation.navigate("UploadText")}>
+            <TouchableOpacity style={styles.whiteButton} onPress={() => navigation.navigate("UploadText", { userData })}>
               <Icon name="file-text" size={20} color="black" />
               <Text style={styles.whiteButtonText}>Upload Text</Text>
             </TouchableOpacity>
@@ -227,22 +233,20 @@ export default function HomeScreen({route}) {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Notes</Text>
 
-            {/* Category Tabs */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryTabsContainer}>
-              <View style={styles.categoryTabs}>
-                {["Health", "Biology", "Arts", "English", "History"].map((category) => (
-                  <TouchableOpacity
-                    key={category}
-                    style={[styles.categoryTab, activeCategory === category && styles.activeCategoryTab]}
-                    onPress={() => setActiveCategory(category)}
-                  >
-                    <Text style={[styles.categoryTabText, activeCategory === category && styles.activeCategoryTabText]}>
-                      {category.charAt(0).toUpperCase() + category.slice(1)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
+            {/* Category Tabs - Direct row without ScrollView */}
+            <View style={styles.categoryTabs}>
+              {["Health", "Biology", "Arts", "English", "History"].map((category) => (
+                <TouchableOpacity
+                  key={category}
+                  style={[styles.categoryTab, activeCategory === category && styles.activeCategoryTab]}
+                  onPress={() => setActiveCategory(category)}
+                >
+                  <Text style={[styles.categoryTabText, activeCategory === category && styles.activeCategoryTabText]}>
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
 
             {/* Notes List */}
             <View style={styles.notesListContainer}>
@@ -264,7 +268,7 @@ export default function HomeScreen({route}) {
             </View>
           </View>
         </View>
-      </ScrollView>
+      </View>
 
       {/* Study Guide Category Input Modal */}
       <Modal
@@ -348,8 +352,29 @@ export default function HomeScreen({route}) {
                 <Icon name="x" size={24} color="#000" />
               </TouchableOpacity>
             </View>
+            
+            {/* Tab Selector */}
+            <View style={styles.noteTabSelector}>
+              <TouchableOpacity 
+                style={[styles.noteTab, activeNoteTab === "summary" && styles.activeNoteTab]}
+                onPress={() => setActiveNoteTab("summary")}
+              >
+                <Text style={[styles.noteTabText, activeNoteTab === "summary" && styles.activeNoteTabText]}>Summary</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.noteTab, activeNoteTab === "transcription" && styles.activeNoteTab]}
+                onPress={() => setActiveNoteTab("transcription")}
+              >
+                <Text style={[styles.noteTabText, activeNoteTab === "transcription" && styles.activeNoteTabText]}>Original</Text>
+              </TouchableOpacity>
+            </View>
+            
             <ScrollView style={styles.noteDetailContent}>
-              <Text style={styles.noteDetailText}>{selectedNote?.fullContent}</Text>
+              {activeNoteTab === "summary" ? (
+                <Text style={styles.noteDetailText}>{selectedNote?.fullContent}</Text>
+              ) : (
+                <Text style={styles.noteDetailText}>{selectedNote?.transcription}</Text>
+              )}
             </ScrollView>
           </View>
         </View>
@@ -400,18 +425,21 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
     paddingTop: 0,
+    flex: 1,
   },
   section: {
     borderWidth: 1,
     borderColor: "#e2e8f0",
     borderRadius: 8,
     padding: 16,
+    paddingBottom: 8,
     marginBottom: 16,
+    flex: 1,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    marginBottom: 16,
+    marginBottom: 6,
   },
   blackButton: {
     backgroundColor: "black",
@@ -443,18 +471,17 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontWeight: "500",
   },
-  categoryTabsContainer: {
-    marginBottom: 16,
-  },
   categoryTabs: {
     flexDirection: "row",
     backgroundColor: "#f3f4f6",
     borderRadius: 8,
     padding: 4,
+    paddingVertical: 2,
+    marginBottom: 6,
   },
   categoryTab: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 2,
     borderRadius: 6,
   },
   activeCategoryTab: {
@@ -473,7 +500,7 @@ const styles = StyleSheet.create({
     color: "black",
   },
   notesListContainer: {
-    height: 300, // Fixed height for the container
+    flex: 1,
   },
   notesList: {
     flex: 1,
@@ -486,7 +513,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   noteTitle: {
-    fontSize: 18,
+    fontSize: 18, 
     fontWeight: "bold",
     marginBottom: 8,
   },
@@ -605,7 +632,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   noteDetailTitle: {
     fontSize: 20,
@@ -618,5 +645,34 @@ const styles = StyleSheet.create({
   noteDetailText: {
     fontSize: 16,
     lineHeight: 24,
+  },
+  noteTabSelector: {
+    flexDirection: 'row',
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    padding: 4,
+    marginBottom: 12,
+    width: '100%',
+    justifyContent: 'center',
+  },
+  noteTab: {
+    paddingHorizontal: 16,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  activeNoteTab: {
+    backgroundColor: "white",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
+    elevation: 1,
+  },
+  noteTabText: {
+    color: "#6b7280",
+    fontWeight: "500",
+  },
+  activeNoteTabText: {
+    color: "black",
   },
 })

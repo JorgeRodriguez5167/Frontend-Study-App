@@ -1,12 +1,74 @@
 // styles.js
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 
-export default StyleSheet.create({
+/**
+ * Cross-platform card styling helper
+ * @param {number} elevation - The elevation level (1-24)
+ * @returns {object} - Platform-specific shadow styles
+ */
+export const cardShadow = (elevation = 2) => {
+  // Base styles for both platforms
+  const baseStyles = {
+    backgroundColor: 'white',
+    borderRadius: 8, 
+  };
+  
+  // Android uses elevation
+  if (Platform.OS === 'android') {
+    return {
+      ...baseStyles,
+      elevation: elevation,
+    };
+  }
+  
+  // iOS uses shadow properties
+  // Adjust shadow properties based on elevation level
+  const shadowOpacity = 0.1 + (elevation * 0.015); // Increase opacity with elevation
+  const shadowRadius = elevation * 0.8;
+  const shadowOffset = { 
+    width: 0, 
+    height: elevation > 1 ? elevation - 1 : elevation 
+  };
+  
+  return {
+    ...baseStyles,
+    shadowColor: "#000",
+    shadowOffset: shadowOffset,
+    shadowOpacity: shadowOpacity,
+    shadowRadius: shadowRadius,
+  };
+};
+
+export const styles = {
+  text: {
+    color: 'black',
+    fontSize: 16,
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginVertical: 20,
+  },
   container: {
     flex: 1,
+    backgroundColor: '#f5f5f5',
     padding: 20,
-    paddingTop: 50,
-    backgroundColor: '#fff',
+  },
+  card: {
+    ...cardShadow(2),
+    padding: 16,
+    marginBottom: 16,
+  },
+  button: {
+    backgroundColor: '#e53e3e',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
   title: {
     fontSize: 24,
@@ -47,5 +109,6 @@ export default StyleSheet.create({
     fontSize: 14,
     color: '#333',
   }
+};
 
-})
+export default styles;
