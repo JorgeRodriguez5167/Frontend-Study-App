@@ -34,6 +34,7 @@ const LoginScreen = ({ navigation }) => {
   const [year, setYear] = useState('');
   const [major, setMajor] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
 
   const handleLogin = () => {
     // Simple validation
@@ -136,6 +137,27 @@ const LoginScreen = ({ navigation }) => {
       );
       return;
     }
+    
+    // Email validation
+    if (!validateEmail(email)) {
+      Alert.alert(
+        'Error',
+        'Please enter a valid email address with @ and domain (e.g., example@domain.com).',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+    
+    // Password validation
+    if (!validatePassword(password)) {
+      Alert.alert(
+        'Error',
+        'Password must be at least 8 characters long and include at least one letter and one symbol.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+    
     if (password !== confirmPassword) {
       Alert.alert(
         'Error',
@@ -257,16 +279,38 @@ const LoginScreen = ({ navigation }) => {
     });
   };
 
+  // Add email validation function
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Add password validation function
+  const validatePassword = (password) => {
+    // Check length
+    if (password.length < 8) return false;
+    
+    // Check for at least one letter
+    if (!/[a-zA-Z]/.test(password)) return false;
+    
+    // Check for at least one symbol (non-alphanumeric)
+    if (!/[^a-zA-Z0-9]/.test(password)) return false;
+    
+    return true;
+  };
+
   const clearForm = () => {
-    setEmail('');
     setUsername('');
     setPassword('');
+    setEmail('');
     setConfirmPassword('');
     setFirstName('');
     setLastName('');
+    setMonth('');
+    setDay('');
+    setYear('');
     setMajor('');
-    setIsSignup(false);
-    setErrorMessage('');
+    setIsLoading(false);
   };
 
   return (
@@ -289,13 +333,23 @@ const LoginScreen = ({ navigation }) => {
             <View style={styles.tabs}>
               <TouchableOpacity
                 style={[styles.tab, activeTab === 'login' && styles.activeTab]}
-                onPress={() => setActiveTab('login')}
+                onPress={() => {
+                  if (activeTab !== 'login') {
+                    setActiveTab('login');
+                    clearForm();
+                  }
+                }}
               >
                 <Text style={[styles.tabText, activeTab === 'login' && styles.activeTabText]}>Login</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.tab, activeTab === 'signup' && styles.activeTab]}
-                onPress={() => setActiveTab('signup')}
+                onPress={() => {
+                  if (activeTab !== 'signup') {
+                    setActiveTab('signup');
+                    clearForm();
+                  }
+                }}
               >
                 <Text style={[styles.tabText, activeTab === 'signup' && styles.activeTabText]}>Sign Up</Text>
               </TouchableOpacity>
@@ -347,12 +401,14 @@ const LoginScreen = ({ navigation }) => {
                     placeholder="First Name"
                     value={firstName}
                     onChangeText={setFirstName}
+                    autoCapitalize="words"
                   />
                   <TextInput
                     style={styles.input}
                     placeholder="Last Name"
                     value={lastName}
                     onChangeText={setLastName}
+                    autoCapitalize="words"
                   />
                   <TextInput
                     style={styles.input}
@@ -399,12 +455,24 @@ const LoginScreen = ({ navigation }) => {
                     value={major}
                     onChangeText={setMajor}
                   />
+                  {passwordFocused && (
+                    <View style={styles.passwordTooltip}>
+                      <Text style={styles.tooltipText}>
+                        Password must contain:
+                      </Text>
+                      <Text style={styles.tooltipText}>• At least 8 characters</Text>
+                      <Text style={styles.tooltipText}>• At least one letter</Text>
+                      <Text style={styles.tooltipText}>• At least one symbol</Text>
+                    </View>
+                  )}
                   <TextInput
                     style={styles.input}
                     placeholder="Password"
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry
+                    onFocus={() => setPasswordFocused(true)}
+                    onBlur={() => setPasswordFocused(false)}
                   />
                   <TextInput
                     style={styles.input}
@@ -586,5 +654,27 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: '#e53e3e',
     textAlign: 'center',
+  },
+  passwordTooltip: {
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 6,
+    padding: 10,
+    marginBottom: 10,
+    width: '90%',
+    maxWidth: 280,
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
+    elevation: 1,
+    zIndex: 1,
+  },
+  tooltipText: {
+    fontSize: 12,
+    color: '#475569',
+    marginBottom: 2,
   },
 });
