@@ -23,6 +23,7 @@ export default function AccountSettingsScreen({ route }) {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [securityLoading, setSecurityLoading] = useState(false)
   const [passwordError, setPasswordError] = useState("")
+  const [passwordFocused, setPasswordFocused] = useState(false)
 
   // Load user data
   useEffect(() => {
@@ -107,6 +108,18 @@ export default function AccountSettingsScreen({ route }) {
     
     if (newPassword.length < 8) {
       setPasswordError("Password must be at least 8 characters long");
+      return false;
+    }
+    
+    // Check for at least one letter
+    if (!/[a-zA-Z]/.test(newPassword)) {
+      setPasswordError("Password must include at least one letter");
+      return false;
+    }
+    
+    // Check for at least one symbol
+    if (!/[^a-zA-Z0-9]/.test(newPassword)) {
+      setPasswordError("Password must include at least one symbol");
       return false;
     }
     
@@ -281,12 +294,24 @@ export default function AccountSettingsScreen({ route }) {
 
             <View style={styles.formGroup}>
               <Text style={styles.label}>New Password</Text>
+              {passwordFocused && (
+                <View style={styles.passwordTooltip}>
+                  <Text style={styles.tooltipText}>
+                    Password must contain:
+                  </Text>
+                  <Text style={styles.tooltipText}>• At least 8 characters</Text>
+                  <Text style={styles.tooltipText}>• At least one letter</Text>
+                  <Text style={styles.tooltipText}>• At least one symbol</Text>
+                </View>
+              )}
               <TextInput 
                 style={styles.input} 
                 secureTextEntry 
                 placeholder="Enter new password" 
                 value={newPassword}
                 onChangeText={setNewPassword}
+                onFocus={() => setPasswordFocused(true)}
+                onBlur={() => setPasswordFocused(false)}
               />
             </View>
 
@@ -531,5 +556,26 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#b91c1c',
     fontSize: 14,
+  },
+  passwordTooltip: {
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 6,
+    padding: 10,
+    marginBottom: 10,
+    width: '100%',
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
+    elevation: 1,
+    zIndex: 1,
+  },
+  tooltipText: {
+    fontSize: 12,
+    color: '#475569',
+    marginBottom: 2,
   },
 })
