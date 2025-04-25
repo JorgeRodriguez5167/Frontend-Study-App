@@ -1,98 +1,150 @@
-import { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native";
-import Icon from "react-native-vector-icons/Feather";
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, ActivityIndicator, Alert, Modal } from 'react-native';
+import Icon from 'react-native-vector-icons/Feather';
 
-export default function UploadTextScreen() {
-  const [file, setFile] = useState(null);
+const BACKEND_URL = 'https://backend-study-app-production.up.railway.app';
 
-  const handleUpload = () => {
-    // In a real app, you would upload the file to your server here
-    console.log("Uploading file...");
+export default function UploadTextScreen({ navigation, route }) {
+  const [inputText, setInputText] = useState('');
+  const [summary, setSummary] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const userData = route?.params?.userData || { userId: 2 };
+
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
+    setShowCategoryModal(false);
+  };
+
+  const handleSummarizeAndSave = async () => {
+    if (!inputText.trim()) {
+      Alert.alert("Error", "Please enter some text.");
+      return;
+    }
+
+    Alert.prompt("Save Note", "Enter a title for your note:", [
+      {
+        text: "Cancel",
+        style: "cancel"
+      },
+      {
+        text: "Save",
+        onPress: async (title) => {
+          if (!title || title.trim() === '') {
+            Alert.alert('Error', 'Please enter a valid title.');
+            return;
+          }
+
+          try {
+            setUploading(true);
+
+            const response = await fetch(`${BACKEND_URL}/summarize`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text: inputText })
+            });
+
+            const data = await response.json();
+            const summaryText = data.summary || '';
+
+            const userId = userData.userId || userData.user_id || 2;
+
+            const saveRes = await fetch(`${BACKEND_URL}/notes`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                user_id: userId,
+                title: title.trim(),
+                category: selectedCategory,
+                transcription: inputText,
+                summarized_notes: summaryText
+              })
+            });
+
+            if (saveRes.ok) {
+              Alert.alert("Success", "Note saved successfully!");
+              setInputText('');
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Home', params: { userData, refresh: Date.now() } }],
+              });
+            } else {
+              throw new Error("Failed to save note.");
+            }
+          } catch (err) {
+            console.error("Error saving note:", err);
+            Alert.alert("Error", err.message || "Something went wrong.");
+          } finally {
+            setUploading(false);
+          }
+        }
+      }
+    ], 'plain-text');
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Upload Text Note</Text>
-            <Text style={styles.cardDescription}>Select a text file to upload</Text>
-          </View>
+    <View style={styles.container}>
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Summarize Your Notes</Text>
+        <Text style={styles.cardDescription}>Category: {selectedCategory || 'Not selected'}</Text>
 
-          {/* Upload Button */}
-          <TouchableOpacity
-            style={[styles.uploadButton, !file && styles.disabledButton]}
-            onPress={handleUpload}
-            disabled={!file}
-          >
-            <Icon name="upload" size={20} color="white" />
-            <Text style={styles.buttonText}>Upload Text</Text>
-          </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.categoryButton}
+          onPress={() => setShowCategoryModal(true)}
+        >
+          <Icon name="list" size={20} color="white" />
+          <Text style={styles.buttonText}>Choose Category</Text>
+        </TouchableOpacity>
 
-          <Text style={styles.supportedFormats}>Supported formats: TXT, DOC, DOCX, PDF</Text>
-        </View>
+        <TextInput
+          style={styles.input}
+          multiline
+          placeholder="Paste or write your notes here..."
+          value={inputText}
+          onChangeText={setInputText}
+        />
+
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={handleSummarizeAndSave}
+          disabled={uploading}
+        >
+          <Icon name="save" size={20} color="white" />
+          <Text style={styles.buttonText}>Summarize & Save</Text>
+        </TouchableOpacity>
+
+        {uploading && <ActivityIndicator size="large" color="#2196F3" style={{ marginTop: 16 }} />}
       </View>
-    </SafeAreaView>
+
+      <Modal transparent visible={showCategoryModal} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Please choose the section:</Text>
+            {['Health', 'Biology', 'Arts', 'English', 'History'].map((section) => (
+              <TouchableOpacity key={section} style={styles.sectionButton} onPress={() => handleCategorySelect(section)}>
+                <Text style={styles.sectionButtonText}>{section}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f3f4f6",
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-    justifyContent: "center",
-  },
-  card: {
-    backgroundColor: "white",
-    borderRadius: 8,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  cardHeader: {
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  cardTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#e53e3e",
-    marginBottom: 8,
-  },
-  cardDescription: {
-    fontSize: 14,
-    color: "#6b7280",
-    textAlign: "center",
-  },
-  uploadButton: {
-    backgroundColor: "#e53e3e",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  disabledButton: {
-    backgroundColor: "#f87171",
-    opacity: 0.7,
-  },
-  buttonText: {
-    color: "white",
-    fontWeight: "bold",
-    marginLeft: 8,
-  },
-  supportedFormats: {
-    textAlign: "center",
-    color: "#6b7280",
-    fontSize: 14,
-  },
+  container: { flex: 1, backgroundColor: "#f3f4f6", justifyContent: "center", padding: 16 },
+  card: { backgroundColor: "white", borderRadius: 8, padding: 16, elevation: 2 },
+  cardTitle: { fontSize: 20, fontWeight: "bold", color: "#e53e3e", marginBottom: 8, textAlign: 'center' },
+  cardDescription: { fontSize: 14, color: "#6b7280", textAlign: "center", marginBottom: 16 },
+  input: { backgroundColor: "#f9fafb", borderColor: "#d1d5db", borderWidth: 1, borderRadius: 8, padding: 12, height: 150, textAlignVertical: "top", marginBottom: 16 },
+  saveButton: { backgroundColor: "#4CAF50", flexDirection: "row", alignItems: "center", justifyContent: "center", padding: 12, borderRadius: 8 },
+  categoryButton: { backgroundColor: "#1f2937", flexDirection: "row", alignItems: "center", justifyContent: "center", padding: 10, borderRadius: 8, marginBottom: 16 },
+  buttonText: { color: "white", fontWeight: "bold", marginLeft: 8 },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
+  modalContent: { backgroundColor: "white", borderRadius: 10, padding: 24, width: "80%", alignItems: "center" },
+  modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 16 },
+  sectionButton: { backgroundColor: "#1f2937", paddingVertical: 10, paddingHorizontal: 24, borderRadius: 8, marginVertical: 6, width: "100%", alignItems: "center" },
+  sectionButtonText: { color: "white", fontWeight: "bold" }
 });
