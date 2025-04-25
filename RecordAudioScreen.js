@@ -220,7 +220,7 @@ export default function RecordAudioScreen() {
                   <Icon name="play" size={24} color="white" />
                   <Text style={styles.buttonText}>Replay Audio</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.saveButton} onPress={handleSaveRecording}>
+                <TouchableOpacity style={[styles.recordButton, {backgroundColor: "#4CAF50"}]} onPress={handleSaveRecording}>
                   <Icon name="save" size={24} color="white" />
                   <Text style={styles.buttonText}>Save Recording</Text>
                 </TouchableOpacity>
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
   recordButton: { backgroundColor: "black", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, marginBottom: 10, width: '100%', maxWidth: 250 },
   stopButton: { backgroundColor: "#e53e3e", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, marginBottom: 10, width: '100%', maxWidth: 250 },
   replayButton: { backgroundColor: "#000000", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, marginBottom: 15, width: '100%', maxWidth: 250 },
-  saveButton: { backgroundColor: "#4CAF50", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, width: '100%', maxWidth: 250 },
+  saveButton: { backgroundColor: "#4CAF50", flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, marginBottom: 15, width: '100%', maxWidth: 250 },
   buttonText: { color: "white", fontWeight: "bold", marginLeft: 8 },
   statusText: { textAlign: "center", color: "#6b7280", fontSize: 14, marginTop: 20 },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
