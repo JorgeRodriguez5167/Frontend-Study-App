@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, FlatList, Modal, TextInput, ActivityIndicator, Alert } from "react-native"
 import { useNavigation } from "@react-navigation/native"
 import Icon from "react-native-vector-icons/Feather"
-
+//Frontend design worked on by Sebastian A.
 export default function HomeScreen({route}) {
   const [activeCategory, setActiveCategory] = useState("Health")
   const [studyGuideModalVisible, setStudyGuideModalVisible] = useState(false)
@@ -105,7 +105,7 @@ export default function HomeScreen({route}) {
       setNotesLoading(false);
     }
   };
-
+//Note display worked on by Jorge
   // Helper function to get first sentence of text
   const getFirstSentence = (text) => {
     if (!text) return "";
@@ -141,7 +141,7 @@ export default function HomeScreen({route}) {
       );
       return;
     }
-
+    //study guide crreation worked on by Jorge 
     setLoading(true);
     try {
       const response = await fetch('https://backend-study-app-production.up.railway.app/study-guide', {

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native";
 import Icon from "react-native-vector-icons/Feather";
 import { useRoute } from "@react-navigation/native";
-
+//File workd on by Sebastian and Rodolfo 
 export default function UploadTextScreen() {
   const [file, setFile] = useState(null);
   const route = useRoute();
@@ -10,6 +10,7 @@ export default function UploadTextScreen() {
 
   const handleUpload = () => {
     // In a real app, you would upload the file to your server here
+    //Feature was not complete
     console.log("Uploading file...", userData);
   };
 

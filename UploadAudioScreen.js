@@ -7,7 +7,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import Icon from 'react-native-vector-icons/Feather';
 import { useRoute, useNavigation } from '@react-navigation/native';
-
+// File worked on by Sebastian and Rodolfo
 const BACKEND_URL = 'https://backend-study-app-production.up.railway.app';
 
 export default function UploadAudioScreen() {
@@ -121,7 +121,7 @@ export default function UploadAudioScreen() {
 
  const saveNote = async (type, content) => {
   if (!content) return;
-
+//IOS route worked on by Jorge
   if (Platform.OS === 'ios') {
     // Use native iOS Alert.prompt
     Alert.prompt(

@@ -4,7 +4,7 @@ import * as FileSystem from 'expo-file-system';
 import { Audio } from 'expo-av';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation, useRoute } from '@react-navigation/native';
-
+//File worked on Rodolfo and Sebastian 
 const BACKEND_URL = 'https://backend-study-app-production.up.railway.app';
 
 export default function RecordAudioScreen() {
@@ -68,7 +68,7 @@ export default function RecordAudioScreen() {
 
   const handleSaveRecording = async () => {
     if (!audioUri) return;
-    
+    //Ios prompting worked on by Jorge R
     if (Platform.OS === 'ios') {
       // Use native iOS Alert.prompt
       Alert.prompt(

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-
+ //this file was worked on by Sebastian A.
 const AccountScreen = ({ navigation }) => {
   const [firstName, setFirstName] = useState('');
   const [secondName, setSecondName] = useState('');

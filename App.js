@@ -7,7 +7,8 @@ import {
   SafeAreaView, KeyboardAvoidingView, Platform, ScrollView, Image,
   ActivityIndicator, LogBox
 } from 'react-native';
-
+//Frontend Design worked on by Sebastian A. 
+//Frontend logic inluding checking for username, password, dispalying errors, and calls to the backend by Jorge
 import HomeScreen from './HomeScreen';
 import NoteSelection from './NoteSelection';
 import AccountSettingsScreen from './AccountSettingsScreen';
@@ -94,7 +95,6 @@ const LoginScreen = ({ navigation }) => {
     .then(data => {
       console.log('Login successful');
       // Store user info/token in app state or AsyncStorage
-      // In a real app, you'd use AsyncStorage or a state management solution
       
       // Store user ID and token for future authenticated requests
       const userData = {

@@ -2,7 +2,8 @@ import { useState, useEffect } from "react"
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, TextInput, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native"
 import Icon from "react-native-vector-icons/Feather"
 import { useNavigation, useRoute } from "@react-navigation/native"
-
+//Frontend Design worked on by Sebastian A
+//Frontend logic inluding checking for username, password, dispalying errors by Jorge
 export default function AccountSettingsScreen({ route }) {
   const navigation = useNavigation()
   const [activeTab, setActiveTab] = useState("profile")

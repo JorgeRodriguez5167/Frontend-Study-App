@@ -1,6 +1,7 @@
 // styles.js
 import { StyleSheet, Platform } from 'react-native';
-
+// file workd on by Sebastion and Jorge
+//IOS congiuration worked on by Jorge
 /**
  * Cross-platform card styling helper
  * @param {number} elevation - The elevation level (1-24)
